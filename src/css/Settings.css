@@ -1,0 +1,287 @@
+:root {
+  /* Light theme colors */
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --card-bg: #ffffff;
+  --border-color: #e0e0e0;
+  --hover-bg: #f5f5f5;
+  --primary-color: #2c5f2d;
+  --secondary-color: #1f4320;
+  --accent-color: #4CAF50;
+}
+
+[data-theme='dark'] {
+  --bg-color: #1a1a1a;
+  --text-color: #ffffff;
+  --card-bg: #2d2d2d;
+  --border-color: #404040;
+  --hover-bg: #3d3d3d;
+  --primary-color: #4CAF50;
+  --secondary-color: #388E3C;
+  --accent-color: #66BB6A;
+}
+
+.settings-page {
+  min-height: calc(100vh - 50px);
+  padding: 20px;
+  color: var(--text-color);
+
+}
+
+
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.profile-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-color);
+}
+
+.avatar-placeholder {
+  color: white;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.settings-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.settings-header {
+  padding: 1rem 0;
+  margin-bottom: 1.5rem;
+}
+
+.settings-header h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.settings-section {
+  margin-bottom: 24px;
+  padding: 0;
+}
+
+.settings-section h2 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: var(--text-color);
+}
+
+/* Input Groups */
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 16px;
+}
+
+.settings-section h3 {
+  font-size: 1.2rem;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.profile-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-placeholder {
+  font-size: 2rem;
+  color: white;
+  font-weight: 500;
+}
+
+.profile-info h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.25rem;
+  color: var(--text-color);
+}
+
+.profile-info p {
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.settings-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.settings-option:hover {
+  background-color: var(--hover-bg);
+}
+
+.option-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.option-left svg {
+  font-size: 1.2rem;
+  color: var(--text-color);
+}
+
+.option-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.theme-options {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.theme-option:hover {
+  background-color: var(--hover-bg);
+}
+
+.theme-option.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.theme-option.active svg {
+  color: white;
+}
+
+.logout {
+  color: #dc3545;
+}
+
+.logout svg {
+  color: #dc3545;
+}
+
+.fcm-token-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.token-container {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.token-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.copy-button {
+  padding: 8px 16px;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.copy-button:hover {
+  background-color: var(--primary-color);
+}
+
+.token-help {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 0.5rem;
+  }
+
+  .profile-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-info {
+    text-align: center;
+  }
+}

@@ -1,0 +1,73 @@
+.scan-button-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background: black;
+  justify-content: center; /* center vertically */
+  align-items: center;     /* center horizontally */
+  position: relative;
+}
+
+.camera-preview {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.camera-feed {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: cover; /* Fill screen without distortion */
+}
+
+.camera-controls-top, .camera-controls-bottom {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+  position: absolute;
+  z-index: 10;
+}
+
+.camera-controls-top {
+  top: 0;
+}
+
+.camera-controls-bottom {
+  bottom: 0;
+}
+
+.camera-grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(to right, rgba(255,255,255,0.2) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255,255,255,0.2) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+.capture-btn {
+  background: green;
+  color: white;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  border: none;
+  font-size: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+body.scan-button .bottom-navbar {
+  display: none !important;
+}

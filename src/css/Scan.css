@@ -1,0 +1,821 @@
+/* Android Camera App Style */
+.camera-app {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+/* Hide bottom navigation when in camera mode */
+body.camera-mode .bottom-navbar {
+  display: none !important;
+}
+
+/* Top Controls Bar */
+.camera-top-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 10;
+}
+
+.camera-controls-left,
+.camera-controls-right {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.camera-controls-center {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: center;
+  margin-left: -40px; /* Move left to align with capture button */
+}
+
+/* Back Button */
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  margin-right: 10px;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.camera-control-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.camera-control-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.camera-control-btn.active {
+  background: #4CAF50;
+  color: white;
+}
+
+/* Timer Text */
+.timer-text {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff4444;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 8px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1;
+}
+
+/* Camera Modes */
+.camera-modes {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+}
+
+.mode-selector {
+  display: flex;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 25px;
+  padding: 5px;
+  backdrop-filter: blur(10px);
+}
+
+.mode-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mode-btn.active {
+  background: #4CAF50;
+  color: white;
+  width: 100px;
+}
+
+.mode-btn:hover {
+  color: white;
+}
+
+/* Main Camera View */
+.camera-viewport {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  overflow: hidden;
+}
+
+.camera-viewport.square {
+  aspect-ratio: 1;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+.camera-viewport.portrait {
+  aspect-ratio: 3/4;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+.camera-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+
+.placeholder-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.placeholder-icon p {
+  font-size: 18px;
+  margin: 0;
+}
+
+/* Camera Grid */
+.camera-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+  background-size: 33.33% 33.33%;
+}
+
+/* Bottom Controls */
+.camera-bottom-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+.camera-bottom-controls .camera-controls-left,
+.camera-bottom-controls .camera-controls-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.camera-bottom-controls .camera-controls-left {
+  justify-content: flex-start;
+}
+
+.camera-bottom-controls .camera-controls-right {
+  justify-content: flex-end;
+}
+
+.camera-controls-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Capture Button */
+.capture-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #4CAF50;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 40px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.capture-btn:hover {
+  transform: scale(1.05);
+}
+
+.capture-btn.active {
+  border-color: #4CAF50;
+}
+
+.capture-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.capture-btn-inner {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+}
+
+.capture-btn.active .capture-btn-inner {
+  background: #ff4444;
+  transform: scale(0.8);
+}
+
+/* Gallery Preview */
+.gallery-preview {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.gallery-preview:hover {
+  border-color: #4CAF50;
+  transform: scale(1.05);
+}
+
+.gallery-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Upload Button */
+.upload-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.upload-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Security Warning */
+.security-warning {
+  background: rgba(255, 193, 7, 0.9);
+  color: #000;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.security-warning p {
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Permission Modal */
+.permission-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.permission-content {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.permission-content h3 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+
+.permission-content p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.permission-content ol {
+  text-align: left;
+  color: #666;
+  margin: 20px 0;
+  padding-left: 20px;
+}
+
+.permission-content li {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.close-help-button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 20px;
+  transition: background 0.3s ease;
+}
+
+.close-help-button:hover {
+  background: #45a049;
+}
+
+/* Plant Info Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  border-radius: 20px;
+  max-width: 90%;
+  width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide scrollbar for modal content */
+.modal-content::-webkit-scrollbar {
+  display: none;
+}
+
+.modal-content {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.plant-name {
+  color: var(--text-color);
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  flex: 1;
+}
+
+.modal-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-color);
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.modal-close:hover {
+  background: var(--border-color);
+  opacity: 1;
+}
+
+/* Plant Image */
+.plant-image-container {
+  padding: 0 24px 24px;
+  flex-shrink: 0;
+}
+
+.plant-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px var(--shadow-color);
+  margin-top: 8px;
+}
+
+/* Plant Details */
+.plant-details {
+  padding: 0 24px 24px;
+  flex-shrink: 0;
+}
+
+.scientific-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-color);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.scientific-name svg {
+  font-size: 14px;
+}
+
+.description {
+  color: var(--text-color);
+  opacity: 0.8;
+  line-height: 1.6;
+  margin: 0;
+  font-size: 15px;
+}
+
+/* Care Guide Section */
+.care-guide-section {
+  padding: 0 24px 24px;
+  flex-shrink: 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-color);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+}
+
+.section-title svg {
+  color: var(--primary-color);
+  font-size: 16px;
+}
+
+.care-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.care-card {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+}
+
+.care-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px var(--shadow-color);
+}
+
+.care-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: white;
+}
+
+.care-icon.water {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+}
+
+.care-icon.sunlight {
+  background: linear-gradient(135deg, #FF9800, #F57C00);
+}
+
+.care-icon.soil {
+  background: linear-gradient(135deg, #8BC34A, #689F38);
+}
+
+.care-icon.temperature {
+  background: linear-gradient(135deg, #E91E63, #C2185B);
+}
+
+.care-content h4 {
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.care-content p {
+  color: var(--text-color);
+  opacity: 0.7;
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Fun Facts Section */
+.fun-facts-section {
+  padding: 0 24px 24px;
+  flex-shrink: 0;
+}
+
+.fun-facts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fun-fact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.fun-fact-item:hover {
+  background: var(--border-color);
+}
+
+.fun-fact-item svg {
+  color: var(--primary-color);
+  font-size: 14px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.fun-fact-item span {
+  color: var(--text-color);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Modal Actions */
+.modal-actions {
+  padding: 0 24px 24px;
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.favorite-button {
+  width: 100%;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.favorite-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px var(--shadow-color);
+}
+
+.favorite-button svg {
+  font-size: 16px;
+}
+
+/* Modal Responsive Design */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+    max-height: 95vh;
+  }
+  
+  .care-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-header {
+    padding: 16px 20px 12px;
+  }
+  
+  .plant-name {
+    font-size: 20px;
+  }
+  
+  .plant-image-container,
+  .plant-details,
+  .care-guide-section,
+  .fun-facts-section,
+  .modal-actions {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 0;
+  }
+
+  .modal-content {
+    border-radius: 0;
+    height: 100vh;
+    max-height: 100vh;
+  }
+  
+  .plant-image {
+    height: 150px;
+  }
+  
+  .care-card {
+    padding: 12px;
+  }
+  
+  .care-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
+
+/* Camera Responsive Design */
+@media (max-width: 768px) {
+  .camera-top-controls {
+    padding: 0 15px;
+  }
+  
+  .camera-bottom-controls {
+    padding: 0 20px;
+  }
+  
+  .capture-btn {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .capture-btn-inner {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .gallery-preview {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .upload-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .camera-control-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+  
+  .mode-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  
+  .capture-btn {
+    width: 65px;
+    height: 65px;
+  }
+  
+  .capture-btn-inner {
+    width: 45px;
+    height: 45px;
+  }
+}
