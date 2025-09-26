@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import ScanButton from "../../components/scanbutton/Scanbutton";
+import ScanButton from "../../components/ScanButton/ScanButton";
 import { addToFavorites } from "../../firebase/favorites";
 import { notificationService } from "../../utils/notificationService";
 import '../../css/Scan.css';

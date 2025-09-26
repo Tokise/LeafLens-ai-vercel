@@ -10,9 +10,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
+    "@fortawesome/free-brands-svg-icons": "^7.0.1",
+    "@fortawesome/free-regular-svg-icons": "^7.0.1",
+    "@fortawesome/free-solid-svg-icons": "^7.0.1",
+    "@fortawesome/react-fontawesome": "^3.0.2",
+    "axios": "^1.12.2",
     "firebase": "^12.3.0",
+    "framer-motion": "^12.23.22",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "react-hook-form": "^7.63.0",
+    "react-hot-toast": "^2.6.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.9.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
