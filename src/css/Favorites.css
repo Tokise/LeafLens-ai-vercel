@@ -1,11 +1,18 @@
 /* Favorites Page - Modern List Design */
 .favorites-container {
-  min-height: 100vh;
+  min-height: calc(100vh - 75px); /* Account for bottom navbar */
   background-color: var(--background-color);
   color: var(--text-color);
   padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  overflow-y: auto;
+  height: calc(100vh - 75px); /* Account for bottom navbar */
+  padding-bottom: 85px; /* Extra padding to ensure content is not hidden behind navbar */
+  scrollbar-width: none;
+}
+.favorites-container::-webkit-scrollbar {
+  width: 0 !important;
+  background: transparent !important;
+  display: none !important;
 }
 
 .favorites-container h1 {

@@ -1,7 +1,10 @@
 .notifications-container {
   padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
+  min-height: calc(100vh - 75px); /* Account for bottom navbar */
+  width: 100%;
+  overflow-y: auto;
+  height: calc(100vh - 75px); /* Account for bottom navbar */
+  padding-bottom: 85px; /* Extra padding to ensure content is not hidden behind navbar */
 }
 
 .notifications-header {

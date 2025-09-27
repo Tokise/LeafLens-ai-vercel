@@ -12,6 +12,9 @@
   z-index: 1000;
   height: 65px;
   backdrop-filter: blur(10px);
+  /* Prevent hiding scrollbars */
+  overflow-x: visible;
+  overflow-y: visible;
 }
 
 .nav-item {
@@ -64,7 +67,10 @@
 
 /* Adjust main content to account for bottom navbar */
 body {
-  padding-bottom: 75px;
+  /* Remove margin-bottom since we're handling it in individual containers */
+  margin-bottom: 0;
+  /* Ensure vertical scrollbar is always visible */
+  overflow-y: auto;
 }
 
 /* Add hover effects */

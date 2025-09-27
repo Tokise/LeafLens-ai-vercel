@@ -22,10 +22,19 @@
 }
 
 .settings-page {
-  min-height: calc(100vh - 50px);
+  min-height: calc(100vh - 75px); /* Account for bottom navbar */
+  width: 100%;
   padding: 20px;
   color: var(--text-color);
-
+  overflow-y: auto;
+  height: calc(100vh - 75px); /* Account for bottom navbar */
+  padding-bottom: 85px; /* Extra padding to ensure content is not hidden behind navbar */
+  scrollbar-width: none;
+}
+.settings-page::-webkit-scrollbar {
+  width: 0 !important;
+  background: transparent !important;
+  display: none !important;
 }
 
 

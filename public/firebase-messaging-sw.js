@@ -6,14 +6,14 @@ importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compa
 // Note: This file is served statically from /public and cannot read import.meta.env
 // Using public Firebase config here is safe and required for messaging to work in the SW
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
-  };
+  apiKey: "AIzaSyCsRq2o6SmhEi7zPREDvOZiqb4T1WyImUQ",
+  authDomain: "leaflens-ai-a12c1.firebaseapp.com",
+  projectId: "leaflens-ai-a12c1",
+  storageBucket: "leaflens-ai-a12c1.firebasestorage.app",
+  messagingSenderId: "106730528970",
+  appId: "1:106730528970:web:06b7ae34743c3a90c61433",
+  measurementId: "G-WR56KPVNTH"
+};
 
 firebase.initializeApp(firebaseConfig);
 

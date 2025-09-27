@@ -49,24 +49,41 @@ export const signUp = async (email, password, displayName) => {
 // Google Sign-in (Dual platform)
 export const signInWithGoogle = async () => {
   try {
+    // Always use Capacitor plugin for Median.co/Android
     if (isAndroidWrapper()) {
-      // --- Android (Median.co) ---
-      const googleUser = await GoogleAuth.signIn();
-      const idToken = googleUser.authentication.idToken;
-      const credential = GoogleAuthProvider.credential(idToken);
-      const firebaseUser = await signInWithCredential(auth, credential);
-      return { user: firebaseUser.user, error: null };
+      if (!GoogleAuth) {
+        return { user: null, error: 'GoogleAuth plugin not available.' };
+      }
+      try {
+        const googleUser = await GoogleAuth.signIn();
+        const idToken = googleUser.authentication.idToken;
+        const credential = GoogleAuthProvider.credential(idToken);
+        const firebaseUser = await signInWithCredential(auth, credential);
+        return { user: firebaseUser.user, error: null };
+      } catch (pluginError) {
+        console.error("Google sign-in error (plugin):", pluginError);
+        return { user: null, error: pluginError.message };
+      }
     } else {
-      // --- Web ---
-      const provider = new GoogleAuthProvider();
-      provider.addScope('email');
-      provider.addScope('profile');
-      provider.setCustomParameters({ prompt: 'select_account' });
-      const userCredential = await signInWithPopup(auth, provider);
-      return { user: userCredential.user, error: null };
+      // Web only: use popup
+      try {
+        const provider = new GoogleAuthProvider();
+        provider.addScope('email');
+        provider.addScope('profile');
+        provider.setCustomParameters({ prompt: 'select_account' });
+        const userCredential = await signInWithPopup(auth, provider);
+        return { user: userCredential.user, error: null };
+      } catch (webError) {
+        // If popup is blocked, suggest user to enable popups
+        if (webError.code === 'auth/popup-blocked') {
+          return { user: null, error: 'Popup blocked. Please enable popups for Google sign-in.' };
+        }
+        console.error("Google sign-in error (web):", webError);
+        return { user: null, error: webError.message };
+      }
     }
   } catch (error) {
-    console.error("Google sign-in error:", error);
+    console.error("Google sign-in error (outer):", error);
     return { user: null, error: error.message };
   }
 };

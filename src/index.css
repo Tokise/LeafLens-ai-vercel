@@ -1,3 +1,5 @@
+
+
 :root {
   /* Light theme (default) */
   --primary-color: #2c5f2d;
@@ -43,11 +45,40 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  /* Ensure body can scroll when content overflows */
+  overflow-y: auto;
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Hide scrollbar for WebKit browsers */
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* Ensure html can scroll */
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Hide scrollbar for WebKit browsers */
+html::-webkit-scrollbar {
+  display: none;
 }
 
 .app-main {
-  padding-top: 64px; /* Height of the navbar */
-  min-height: 100vh;
+  padding-top: 64px; /* Height of the top navbar */
+  padding-bottom: 75px; /* Height of the bottom navbar */
+  width: 100%;
+  min-height: calc(100vh - 64px - 75px); /* Account for both navbars */
+  /* Allow natural content flow and scrolling */
 }
 
 .loading-screen {
@@ -110,6 +141,32 @@ a:hover {
   color: var(--primary-color);
 }
 
+body.camera-mode, html.camera-mode {
+  overflow: hidden !important;
+}
 .hide-bottom-nav .bottom-navbar {
   display: none !important;
+}
+
+/* Global scrollbar hiding for specific scrollable containers */
+.home-container,
+.chatbot-container,
+.favorites-container,
+.notifications-container,
+.settings-page {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.home-container::-webkit-scrollbar,
+.chatbot-container::-webkit-scrollbar,
+.favorites-container::-webkit-scrollbar,
+.notifications-container::-webkit-scrollbar,
+.settings-page::-webkit-scrollbar {
+  display: none; /* WebKit browsers */
+}
+
+/* Ensure smooth scrolling */
+html {
+  scroll-behavior: smooth;
 }

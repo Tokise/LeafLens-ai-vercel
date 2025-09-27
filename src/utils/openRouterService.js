@@ -3,7 +3,7 @@ class OpenRouterService {
   constructor() {
     this.apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
     this.baseURL = 'https://openrouter.ai/api/v1';
-    this.model = 'meta-llama/llama-3.1-8b-instruct:free'; // Free model, you can change this
+  this.model = 'x-ai/grok-4-fast:free'; // Free model, updated to fix 404 error
   }
 
   async sendMessage(message, conversationHistory = []) {

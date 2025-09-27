@@ -1,12 +1,64 @@
+/* Hide scrollbars for scan section and page */
 .scan-button-wrapper {
+  scrollbar-width: none; /* Firefox */
+}
+.scan-button-wrapper::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+body, html {
+  overflow: hidden !important; /* This will be modified below */
+}
+.scan-button-wrapper {
+  /* ...existing styles... */
+  scrollbar-width: none; /* Firefox */
+}
+.scan-button-wrapper::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+html, body {
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  user-select: none;
+  -ms-touch-action: manipulation;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.icon-btn {
+  background: none;
+  color: white;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  border: none;
+  font-size: 22px;
+  body.camera-mode, html.camera-mode {
+    overflow: hidden !important;
+  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.icon-btn:hover {
+  background: rgba(255,255,255,0.08);
+}
+.scan-button-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100%;
-  background: black;
-  justify-content: center; /* center vertically */
-  align-items: center;     /* center horizontally */
-  position: relative;
+  justify-content: flex-start;
+  align-items: center;
+  overflow: hidden;
+  z-index: 999;
 }
 
 .camera-preview {
@@ -35,25 +87,40 @@
   z-index: 10;
 }
 
-.camera-controls-top {
-  top: 0;
+/* Icon button base */
+.icon-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+/* Active state: green color and background */
+.icon-btn.active {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4CAF50 !important;
 }
 
-.camera-controls-bottom {
-  bottom: 0;
+/* Timer dropdown styles */
+.timer-select-dropdown {
+  min-width: 120px;
+  box-shadow: 0 2px 8px rgba(44,95,45,0.15);
+  border: 1px solid #eee;
+  padding: 4px 0;
+}
+.timer-option {
+  font-size: 15px;
+  border-radius: 6px;
+  margin: 2px 0;
+}
+.timer-option.selected {
+  background: #4CAF50;
+  color: #fff !important;
 }
 
-.camera-grid-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: linear-gradient(to right, rgba(255,255,255,0.2) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255,255,255,0.2) 1px, transparent 1px);
-  background-size: 20px 20px;
-  pointer-events: none;
-}
 
 .capture-btn {
   background: green;
