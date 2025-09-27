@@ -16,18 +16,18 @@ if (typeof window !== "undefined" && window.Capacitor) {
   }
 }
 
-useEffect(() => {
-  if (isCapturing) {
-    document.body.classList.add("hide-bottom-nav");
-  } else {
-    document.body.classList.remove("hide-bottom-nav");
-  }
 
-  return () => document.body.classList.remove("hide-bottom-nav");
-}, [isCapturing]);
 
 const ScanButton = ({ onCapture }) => {
   const [isCapturing, setIsCapturing] = useState(false);
+  useEffect(() => {
+    if (isCapturing) {
+      document.body.classList.add("hide-bottom-nav");
+    } else {
+      document.body.classList.remove("hide-bottom-nav");
+    }
+    return () => document.body.classList.remove("hide-bottom-nav");
+  }, [isCapturing]);
   const [facingMode, setFacingMode] = useState("environment"); // back camera
   const [flashMode, setFlashMode] = useState("off"); // android only
   const [timer, setTimer] = useState(0);
