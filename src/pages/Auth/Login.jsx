@@ -134,7 +134,14 @@ const Login = () => {
               if (result.error) {
                 setError(result.error);
               } else {
-                navigate('/');
+                // Detect Median.co Android wrapper
+                const isAndroidWrapper = window.navigator.userAgent.includes("Median");
+                if (isAndroidWrapper) {
+                  navigate('/');
+                  window.location.reload(); // Force reload for Android wrapper
+                } else {
+                  navigate('/');
+                }
               }
             } catch (err) {
               setError('An unexpected error occurred. Please try again.');
