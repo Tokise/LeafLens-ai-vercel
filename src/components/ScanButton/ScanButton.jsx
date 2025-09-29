@@ -192,9 +192,17 @@ const ScanButton = ({ onCapture }) => {
       </div>
 
       {/* Camera Preview or Placeholder */}
-  <div className="camera-preview" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', width: '100%', minHeight: 0 }}>
-        {!isAndroidWrapper() && videoRef.current && videoRef.current.srcObject ? (
-          <video ref={videoRef} autoPlay playsInline className="camera-feed" />
+      <div className="camera-preview" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', width: '100%', minHeight: 0 }}>
+        {!isAndroidWrapper() ? (
+          <>
+            <video ref={videoRef} autoPlay playsInline className="camera-feed" style={{ background: '#111' }} />
+            {!videoRef.current || !videoRef.current.srcObject ? (
+              <div className="camera-placeholder" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: '#888', background: 'rgba(0,0,0,0.7)', zIndex: 2 }}>
+                <FontAwesomeIcon icon={faCamera} style={{ fontSize: 64, opacity: 0.5 }} />
+                <div style={{ marginTop: 12 }}>Camera Not Ready</div>
+              </div>
+            ) : null}
+          </>
         ) : (
           <div className="camera-placeholder" style={{ textAlign: 'center', color: '#888' }}>
             <FontAwesomeIcon icon={faCamera} style={{ fontSize: 64, opacity: 0.5 }} />
