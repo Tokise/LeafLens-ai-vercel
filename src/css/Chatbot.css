@@ -501,8 +501,8 @@ body.chatbot-mode .bottom-navbar {
     
   }
   .chatbot-app{
-    margin-top: -63px;
-    height: 115vh;
+    margin-top: -188px;
+    height: 109vh;
   }
   
   .message{
@@ -536,8 +536,8 @@ body.chatbot-mode .bottom-navbar {
 
 @media (max-width: 480px) {
   .chatbot-app{
-    margin-top: -60px;
-    height: 90vh;
+    margin-top: -80px;
+    height: 93vh;
   }
   
   .ai-avatar {

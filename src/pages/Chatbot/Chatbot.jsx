@@ -27,6 +27,13 @@ import { useTheme } from '../../context/ThemeContext';
 import '../../css/Chatbot.css';
 
 const Chatbot = () => {
+  const [messages, setMessages] = useState([]);
+  // Scroll to bottom on mount and when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom(false);
+    }
+  }, [messages]);
   useEffect(() => {
     document.body.classList.add('chatbot-mode');
     return () => {
@@ -35,11 +42,12 @@ const Chatbot = () => {
   }, []);
   const navigate = useNavigate();
   const location = useLocation();
-  const plant = location.state?.plant || null;
+  const initialPlant = location.state?.plant || null;
   const { theme } = useTheme();
-  const [messages, setMessages] = useState([]);
+  // Track attached plant (can be removed)
+  const [attachedPlant, setAttachedPlant] = useState(initialPlant);
   // Prefill input if coming from Favorites with a plant
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState(initialPlant ? `I want to ask about ${initialPlant.name}` : '');
   const textareaRef = useRef(null);
   // Load chat messages from Firestore on mount
   useEffect(() => {
@@ -50,8 +58,8 @@ const Chatbot = () => {
       if (!user) {
         setMessages([]);
         // Prefill input and focus if coming from Favorites
-        if (plant && textareaRef.current) {
-          setInputMessage(`I want to ask about ${plant.name}`);
+        if (attachedPlant && textareaRef.current) {
+          setInputMessage(`I want to ask about ${attachedPlant.name}`);
           setTimeout(() => textareaRef.current && textareaRef.current.focus(), 100);
         }
         return;
@@ -72,8 +80,8 @@ const Chatbot = () => {
         });
         setMessages(loadedMessages);
         // Prefill input and focus if coming from Favorites and no history
-        if (plant && filteredMessages.length === 0 && textareaRef.current) {
-          setInputMessage(`I want to ask about ${plant.name}`);
+        if (attachedPlant && loadedMessages.length === 0 && textareaRef.current) {
+          setInputMessage(`I want to ask about ${attachedPlant.name}`);
           setTimeout(() => textareaRef.current && textareaRef.current.focus(), 100);
         }
       } catch (err) {
@@ -91,15 +99,13 @@ const Chatbot = () => {
     fetchMessages();
     // Optionally, listen for auth state changes and reload
     // eslint-disable-next-line
-  }, [plant]);
+  }, [attachedPlant]);
   // (moved above for prefill logic)
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const chatMessagesRef = useRef(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const [userScrolledUp, setUserScrolledUp] = useState(false);
-  const [pendingNewMessage, setPendingNewMessage] = useState(false);
   // (already declared above)
 
 
@@ -115,14 +121,8 @@ const Chatbot = () => {
     const handleScroll = () => {
       if (!chatMessagesRef.current) return;
       const { scrollTop, scrollHeight, clientHeight } = chatMessagesRef.current;
-      // If user is not at the bottom, set userScrolledUp true
-      const scrolledUp = scrollHeight - scrollTop - clientHeight > 80;
-      setUserScrolledUp(scrolledUp);
-      // If user scrolls to bottom, clear pendingNewMessage and hide button
-      if (!scrolledUp) {
-        setPendingNewMessage(false);
-        setShowScrollToBottom(false);
-      }
+      // If user is not at the bottom, show arrow
+      setShowScrollToBottom(scrollHeight - scrollTop - clientHeight > 80);
     };
     const ref = chatMessagesRef.current;
     if (ref) ref.addEventListener('scroll', handleScroll);
@@ -131,23 +131,7 @@ const Chatbot = () => {
     };
   }, []);
 
-  // Auto-scroll to bottom when new message arrives unless user is viewing older messages
-  useEffect(() => {
-    if (!chatMessagesRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = chatMessagesRef.current;
-    // If user is at the bottom or near, auto-scroll
-    if (scrollHeight - scrollTop - clientHeight < 80) {
-      scrollToBottom();
-      setShowScrollToBottom(false);
-      setPendingNewMessage(false);
-    } else {
-      // If user is scrolled up and a new message arrives, show button
-      if (userScrolledUp) {
-        setPendingNewMessage(true);
-        setShowScrollToBottom(true);
-      }
-    }
-  }, [messages]);
+
 
   useEffect(() => {
     document.body.classList.add('chatbot-mode');
@@ -192,7 +176,7 @@ const Chatbot = () => {
     }
 
     try {
-      const response = await fetchOpenRouterResponse(inputMessage);
+      const response = await fetchOpenRouterResponse(inputMessage, attachedPlant);
       const botMessage = {
         id: Date.now() + 1,
         type: 'bot',
@@ -224,7 +208,7 @@ const Chatbot = () => {
     }
   };
 
-  const fetchOpenRouterResponse = async (message) => {
+  const fetchOpenRouterResponse = async (message, plantAttachment) => {
     try {
       // Check if OpenRouter is configured
       if (!openRouterService.isConfigured()) {
@@ -242,8 +226,8 @@ const Chatbot = () => {
 
       // If plant context is present, prepend plant info to the prompt
       let prompt = message;
-      if (plant) {
-        prompt = `Here is the plant info:\nName: ${plant.name}\nScientific Name: ${plant.scientificName}\nDescription: ${plant.description}\nCare Guide: Water: ${plant.careGuide?.water}, Sunlight: ${plant.careGuide?.sunlight}, Soil: ${plant.careGuide?.soil}, Temperature: ${plant.careGuide?.temperature}\nFun Facts: ${(plant.funFacts || []).join(', ')}\n\nUser question: ${message}`;
+      if (plantAttachment) {
+        prompt = `Here is the plant info:\nName: ${plantAttachment.name}\nScientific Name: ${plantAttachment.scientificName}\nDescription: ${plantAttachment.description}\nCare Guide: Water: ${plantAttachment.careGuide?.water}, Sunlight: ${plantAttachment.careGuide?.sunlight}, Soil: ${plantAttachment.careGuide?.soil}, Temperature: ${plantAttachment.careGuide?.temperature}\nFun Facts: ${(plantAttachment.funFacts || []).join(', ')}\n\nUser question: ${message}`;
       }
 
       const response = await openRouterService.sendMessage(prompt, conversationHistory, 'x-ai/grok-4-fast:free');
@@ -273,41 +257,10 @@ const Chatbot = () => {
     }
   };
 
-  // Add missing quickAccessCards and quickPrompts arrays for rendering
-  const quickAccessCards = [
-    {
-      title: "Watering Tips",
-      description: "How often should I water my plant?",
-      prompt: "How often should I water my plant?",
-      icon: faLeaf,
-      color: "#4CAF50"
-    },
-    {
-      title: "Light Requirements",
-      description: "Does my plant need direct sunlight?",
-      prompt: "Does my plant need direct sunlight?",
-      icon: faSun,
-      color: "#FFD700"
-    },
-    {
-      title: "Common Problems",
-      description: "Why are my plant's leaves turning yellow?",
-      prompt: "Why are my plant's leaves turning yellow?",
-      icon: faBug,
-      color: "#FF5722"
-    }
-  ];
-
-  const quickPrompts = [
-    "How do I repot my plant?",
-    "What fertilizer should I use?",
-    "How do I treat pests?",
-    "Can I propagate this plant?",
-    "Is this plant toxic to pets?"
-  ];
+ 
 
   return (
-    <div className="chatbot-app" >
+  <div className="chatbot-app" >
       {/* Fixed Header with Back Icon and Title */}
       <div className="chatbot-header">
         <button className="back-btn" onClick={() => navigate(-1)} aria-label="Back">
@@ -318,20 +271,7 @@ const Chatbot = () => {
         </h1>
       </div>
 
-      {/* Plant Heading if coming from Favorites */}
-      {plant && (
-        <div style={{
-          textAlign: 'center',
-          marginTop: 24,
-          marginBottom: 8,
-          fontWeight: 600,
-          fontSize: 22,
-          color: 'var(--primary-color)'
-        }}>
-          Ask about: <span style={{ color: 'var(--text-color)' }}>{plant.name}</span>
-        </div>
-      )}
-
+    
       {/* Chat Messages */}
       <div className="chatbot-container">
         {messages.length === 0 && !isTyping && (
@@ -397,32 +337,25 @@ const Chatbot = () => {
             )
           ))}
           {isTyping && (
-            <div className="message bot typing">
-              <div className="message-content">
+            <div className="message bot typing" style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <div className="message-avatar" style={{ marginRight: 4 }}>
+                <FontAwesomeIcon icon={faRobot} />
+              </div>
+              <div className="message-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                 <div className="message-bubble typing-indicator">
                   <span></span>
                   <span></span>
                   <span></span>
                 </div>
-                <div className="message-avatar" style={{ marginTop: 8 }}>
-                  <FontAwesomeIcon icon={faRobot} />
-                </div>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
-          {showScrollToBottom && userScrolledUp && pendingNewMessage && (
-            <button
-              className="scroll-to-bottom-btn"
-              style={{ position: 'absolute', left: '50%', bottom: 100, transform: 'translateX(-50%)', zIndex: 10, background: 'var(--primary-color)', color: '#fff', border: 'none', borderRadius: 20, padding: '8px 16px', boxShadow: '0 2px 8px var(--shadow-color)', cursor: 'pointer', fontSize: 18 }}
-              onClick={() => { scrollToBottom(); setShowScrollToBottom(false); setUserScrolledUp(false); setPendingNewMessage(false); }}
-              aria-label="Scroll to latest message"
-            >
-              ↓
-            </button>
-          )}
+       
         </div>
       </div>
+
+      {/* No plant preview, just input prefill if redirected from Favorites */}
 
       {/* Floating Message Input at Bottom */}
       <div className="chat-input-container">
@@ -432,7 +365,7 @@ const Chatbot = () => {
             value={inputMessage}
             onChange={e => setInputMessage(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Ask me anything about plants..."
+            placeholder={attachedPlant ? `Ask about ${attachedPlant.name}...` : "Ask me anything about plants..."}
             rows={1}
             maxLength={500}
             disabled={isLoading}
