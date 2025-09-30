@@ -1,14 +1,20 @@
 {
+  "id": "com.leaflensai.pwa",
   "name": "LeafLens AI",
   "short_name": "LeafLens",
   "description": "AI-powered plant care assistant and identification app.",
   "start_url": ".",
+  "scope": ".",
+  "scope_extensions": ["https://leaf-lens-ai-vercel.vercel.app/"],
   "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay", "tabbed"],
   "background_color": "#181c20",
   "theme_color": "#43a047",
   "orientation": "portrait",
-  "scope": ".",
   "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "productivity", "utilities", "lifestyle", "science"],
+  "iarc_rating_id": "eC9kY2ZkZ2Zo",
   "icons": [
     {
       "src": "./src/assets/images/logo.PNG",
@@ -19,6 +25,14 @@
       "src": "./src/assets/images/logo.PNG",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./src/assets/images/logo.PNG",
+      "sizes": "512x512",
+      "type": "image/png",
+      "label": "LeafLens AI Home Screen"
     }
   ],
   "shortcuts": [
@@ -36,5 +50,42 @@
       "url": "/favorites",
       "icons": [{ "src": "./src/assets/images/logo.PNG", "sizes": "192x192" }]
     }
-  ]
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "com.leaflensai.android",
+      "url": "https://play.google.com/store/apps/details?id=com.leaflensai.android"
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "file_handlers": [
+    {
+      "action": "/open-file",
+      "accept": {
+        "image/*": [".png", ".jpg", ".jpeg"]
+      }
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [{ "name": "files", "accept": ["image/*"] }]
+    }
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "windows_control_overlay": {
+    "enabled": true
+  },
+  "tabbed": true
 }
