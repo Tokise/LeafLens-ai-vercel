@@ -84,7 +84,7 @@ const Favorites = () => {
   return (
     <div className="favorites-container">
       <Header />
-      <h1>My Plant Collection</h1>
+      <h1>Favorites</h1>
       
       {error && (
         <div className="error-message">

@@ -184,12 +184,7 @@ const ScanButton = ({ onCapture }) => {
         </button>
       </div>
 
-      {/* Mode Selector: below top controls */}
-      <div style={{ position: 'absolute', top: 80, left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', zIndex: 9 }}>
-        <button className={`mode-btn${mode === 'normal' ? ' active' : ''}`} onClick={() => setMode('normal')}>NORMAL</button>
-        <button className={`mode-btn${mode === 'square' ? ' active' : ''}`} onClick={() => setMode('square')}>SQUARE</button>
-        <button className={`mode-btn${mode === 'portrait' ? ' active' : ''}`} onClick={() => setMode('portrait')}>PORTRAIT</button>
-      </div>
+   
 
       {/* Camera Preview or Placeholder */}
       <div className="camera-preview" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', width: '100%', minHeight: 0 }}>

@@ -64,15 +64,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="recent-scans">
-        <h2>Recent Scans</h2>
-        <div className="scans-grid">
-          {/* This will be populated with actual scan data later */}
-          <p className="empty-state">
-            No plants scanned yet. Start by clicking the "Scan a Plant" button!
-          </p>
-        </div>
-      </section>
+   
 
     </div>
   );

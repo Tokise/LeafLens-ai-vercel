@@ -2,9 +2,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: .5rem;
   position: fixed;
-  top: 0.5px;
+  top: .5px;
   left: 0;
   right: 0;
   z-index: 100;
@@ -23,6 +23,7 @@
   justify-content: center;
   box-shadow: 0 2px 4px var(--shadow-color);
   transition: transform 0.2s ease;
+  margin-left: 15px;
 }
 
 .profile-icon:hover {
@@ -46,6 +47,7 @@
   height: 40px;
   border-radius: 50%;
   display: flex;
+  margin-right: 15px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -74,3 +76,4 @@
   border-radius: 50%;
   border: 2px solid var(--card-bg);
 }
+

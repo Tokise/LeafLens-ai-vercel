@@ -96,14 +96,57 @@ const Chatbot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
+  const chatMessagesRef = useRef(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
+  const [pendingNewMessage, setPendingNewMessage] = useState(false);
   // (already declared above)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+
+  // Scroll to bottom unless user is viewing older messages
+  const scrollToBottom = (smooth = true) => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+    }
   };
 
+  // Show scroll-to-bottom arrow if user is not at the bottom
   useEffect(() => {
-    scrollToBottom();
+    const handleScroll = () => {
+      if (!chatMessagesRef.current) return;
+      const { scrollTop, scrollHeight, clientHeight } = chatMessagesRef.current;
+      // If user is not at the bottom, set userScrolledUp true
+      const scrolledUp = scrollHeight - scrollTop - clientHeight > 80;
+      setUserScrolledUp(scrolledUp);
+      // If user scrolls to bottom, clear pendingNewMessage and hide button
+      if (!scrolledUp) {
+        setPendingNewMessage(false);
+        setShowScrollToBottom(false);
+      }
+    };
+    const ref = chatMessagesRef.current;
+    if (ref) ref.addEventListener('scroll', handleScroll);
+    return () => {
+      if (ref) ref.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Auto-scroll to bottom when new message arrives unless user is viewing older messages
+  useEffect(() => {
+    if (!chatMessagesRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = chatMessagesRef.current;
+    // If user is at the bottom or near, auto-scroll
+    if (scrollHeight - scrollTop - clientHeight < 80) {
+      scrollToBottom();
+      setShowScrollToBottom(false);
+      setPendingNewMessage(false);
+    } else {
+      // If user is scrolled up and a new message arrives, show button
+      if (userScrolledUp) {
+        setPendingNewMessage(true);
+        setShowScrollToBottom(true);
+      }
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -264,17 +307,15 @@ const Chatbot = () => {
   ];
 
   return (
-    <div className="chatbot-app" style={{ maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="chatbot-app" >
       {/* Fixed Header with Back Icon and Title */}
       <div className="chatbot-header">
         <button className="back-btn" onClick={() => navigate(-1)} aria-label="Back">
           <FontAwesomeIcon icon={faArrowLeft} size="lg" />
         </button>
         <h1>
-          
           Plant Expert
         </h1>
-        <div className="header-spacer" />
       </div>
 
       {/* Plant Heading if coming from Favorites */}
@@ -299,7 +340,7 @@ const Chatbot = () => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            height: '60%',
+            height: '100%',
             minHeight: 200,
             opacity: 0.85
           }}>
@@ -307,7 +348,7 @@ const Chatbot = () => {
               <FontAwesomeIcon icon={faRobot} />
             </span>
             <div style={{
-              marginTop: 18,
+              marginTop: 25,
               fontSize: 22,
               fontWeight: 600,
               color: 'var(--primary-color)',
@@ -326,39 +367,59 @@ const Chatbot = () => {
             </div>
           </div>
         )}
-        <div className="chat-messages">
+        <div className="chat-messages" ref={chatMessagesRef} style={{ position: 'relative' }}>
           {messages.map((message) => (
-            <div key={message.id} className={`message ${message.type}`}>
-              <div className="message-avatar">
-                {message.type === 'bot' ? (
+            message.type === 'bot' ? (
+              <div key={message.id} className="message bot" style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <div className="message-avatar" style={{ marginRight: 4 }}>
                   <FontAwesomeIcon icon={faRobot} />
-                ) : (
-                  <FontAwesomeIcon icon={faUser} />
-                )}
-              </div>
-              <div className="message-content">
-                <div className="message-bubble">
-                  {message.content}
                 </div>
-                <div className="message-time">
-                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <div className="message-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <div className="message-bubble">
+                    {message.content}
+                  </div>
+                  <div className="message-time">
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div key={message.id} className="message user">
+                <div className="message-content">
+                  <div className="message-bubble">
+                    {message.content}
+                  </div>
+                  <div className="message-time">
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              </div>
+            )
           ))}
           {isTyping && (
             <div className="message bot typing">
-              <div className="message-avatar">
-                <FontAwesomeIcon icon={faRobot} />
-              </div>
               <div className="message-content">
                 <div className="message-bubble typing-indicator">
                   <span></span>
                   <span></span>
                   <span></span>
                 </div>
+                <div className="message-avatar" style={{ marginTop: 8 }}>
+                  <FontAwesomeIcon icon={faRobot} />
+                </div>
               </div>
             </div>
+          )}
+          <div ref={messagesEndRef} />
+          {showScrollToBottom && userScrolledUp && pendingNewMessage && (
+            <button
+              className="scroll-to-bottom-btn"
+              style={{ position: 'absolute', left: '50%', bottom: 100, transform: 'translateX(-50%)', zIndex: 10, background: 'var(--primary-color)', color: '#fff', border: 'none', borderRadius: 20, padding: '8px 16px', boxShadow: '0 2px 8px var(--shadow-color)', cursor: 'pointer', fontSize: 18 }}
+              onClick={() => { scrollToBottom(); setShowScrollToBottom(false); setUserScrolledUp(false); setPendingNewMessage(false); }}
+              aria-label="Scroll to latest message"
+            >
+              ↓
+            </button>
           )}
         </div>
       </div>

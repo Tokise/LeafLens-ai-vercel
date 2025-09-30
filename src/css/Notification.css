@@ -37,11 +37,11 @@
 
 .filter-btn {
   padding: 8px 16px;
-  border: 1px solid var(--border-color);
   background-color: transparent;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s;
+  color: var(--text-color);
 }
 
 .filter-btn:hover {
@@ -50,8 +50,8 @@
 
 .filter-btn.active {
   background-color: var(--accent-color);
-  color: white;
-  border-color: var(--accent-color);
+  color: var(--text-color);
+  border-color: none;
 }
 
 .notifications-list {

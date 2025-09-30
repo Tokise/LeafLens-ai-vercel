@@ -1,49 +1,4 @@
 
-### Dependency List
-
-Install all required dependencies with:
-
-```bash
-npm install \
-	@capacitor/camera@^6.0.0 \
-	@capacitor/core@^6.2.1 \
-	@codetrix-studio/capacitor-google-auth@^3.4.0-rc.4 \
-	@fortawesome/fontawesome-svg-core@^7.0.1 \
-	@fortawesome/free-brands-svg-icons@^7.0.1 \
-	@fortawesome/free-regular-svg-icons@^7.0.1 \
-	@fortawesome/free-solid-svg-icons@^7.0.1 \
-	@fortawesome/react-fontawesome@^3.0.2 \
-	axios@^1.12.2 \
-	cors@^2.8.5 \
-	express@^5.1.0 \
-	firebase@^12.3.0 \
-	form-data@^4.0.4 \
-	framer-motion@^12.23.22 \
-	multer@^2.0.2 \
-	node-fetch@^3.3.2 \
-	react@^19.1.1 \
-	react-dom@^19.1.1 \
-	react-hook-form@^7.63.0 \
-	react-hot-toast@^2.6.0 \
-	react-icons@^5.5.0 \
-	react-router-dom@^7.9.2
-```
-
-For development, also install:
-
-```bash
-npm install --save-dev \
-	@eslint/js@^9.36.0 \
-	@types/react@^19.1.13 \
-	@types/react-dom@^19.1.9 \
-	@vitejs/plugin-react@^5.0.3 \
-	eslint@^9.36.0 \
-	eslint-plugin-react-hooks@^5.2.0 \
-	eslint-plugin-react-refresh@^0.4.20 \
-	globals@^16.4.0 \
-	vite@^7.1.7
-```
-
 # LeafLens AI 🌱
 
 <p align="center">
@@ -133,6 +88,51 @@ npm run build
 ```
 
 ---
+
+### Dependency List
+
+Install all required dependencies with:
+
+```bash
+npm install \
+	@capacitor/camera@^6.0.0 \
+	@capacitor/core@^6.2.1 \
+	@codetrix-studio/capacitor-google-auth@^3.4.0-rc.4 \
+	@fortawesome/fontawesome-svg-core@^7.0.1 \
+	@fortawesome/free-brands-svg-icons@^7.0.1 \
+	@fortawesome/free-regular-svg-icons@^7.0.1 \
+	@fortawesome/free-solid-svg-icons@^7.0.1 \
+	@fortawesome/react-fontawesome@^3.0.2 \
+	axios@^1.12.2 \
+	cors@^2.8.5 \
+	express@^5.1.0 \
+	firebase@^12.3.0 \
+	form-data@^4.0.4 \
+	framer-motion@^12.23.22 \
+	multer@^2.0.2 \
+	node-fetch@^3.3.2 \
+	react@^19.1.1 \
+	react-dom@^19.1.1 \
+	react-hook-form@^7.63.0 \
+	react-hot-toast@^2.6.0 \
+	react-icons@^5.5.0 \
+	react-router-dom@^7.9.2
+```
+
+For development, also install:
+
+```bash
+npm install --save-dev \
+	@eslint/js@^9.36.0 \
+	@types/react@^19.1.13 \
+	@types/react-dom@^19.1.9 \
+	@vitejs/plugin-react@^5.0.3 \
+	eslint@^9.36.0 \
+	eslint-plugin-react-hooks@^5.2.0 \
+	eslint-plugin-react-refresh@^0.4.20 \
+	globals@^16.4.0 \
+	vite@^7.1.7
+```
 
 ## Deployment
 

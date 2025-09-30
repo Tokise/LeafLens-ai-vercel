@@ -1,12 +1,13 @@
 /* Modern Theme-Aware Chatbot Interface */
 .chatbot-app {
-  height: 100vh;
+  height: 110vh;
   background-color: var(--background-color);
   color: var(--text-color);
   display: flex;
   flex-direction: column;
-  margin-top: 0;
+  margin-top: -65px;
   overflow: hidden; /* Prevent body scroll */
+  
 }
 
 /* Hide bottom navbar in chatbot mode */
@@ -42,6 +43,7 @@ body.chatbot-mode .bottom-navbar {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  margin-right: 50px;
 }
 .chatbot-header h1 .header-robot-icon {
   font-size: 1.3em;
@@ -83,15 +85,14 @@ body.chatbot-mode .bottom-navbar {
   max-width: 1000px;
   margin: 0 auto;
   width: 100%;
-  padding: 8px 24px 8px 8px; /* Add right padding for scrollbar */
+  padding: 16px; /* Add right padding for scrollbar */
   gap: 12px;
-  margin-top: 10px; /* Account for fixed header */
+  margin-top: 180px; /* Match header height exactly, so messages start just below header */
   overflow-y: auto;
   height: calc(100vh - 60px); /* Account for header height */
   /* Hide scrollbar but keep functionality */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
-  margin-bottom: 150px; /* Account for fixed input */
 }
 
 /* Hide scrollbar for WebKit browsers */
@@ -496,43 +497,28 @@ body.chatbot-mode .bottom-navbar {
 /* Responsive Design */
 @media (max-width: 768px) {
   .chatbot-container {
-    padding: 16px;
-    gap: 16px;
-  
-   
+    padding: 10px;
+    
+  }
+  .chatbot-app{
+    margin-top: -63px;
+    height: 115vh;
   }
   
-  .welcome-section {
-    padding: 20px 0;
+  .message{
+    max-width: 80%;
   }
-  
-  .welcome-content h2 {
-    font-size: 24px;
-  }
-  
-  .quick-cards {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  
-  .quick-card {
-    padding: 16px;
-  }
-  
-  .message {
-    max-width: 90%;
-  }
-  
   .chat-messages {
     padding: 16px 0 120px 0;
-    height: calc(100vh - 60px - 120px); /* Adjust for header and input */
+    height: calc(100vh - 60px); /* Adjust for header and input */
+
   }
   
   .chat-input-container {
-    padding: 12px;
+    padding: 8px;
     left: 0;
     right: 0;
-      margin-top: -100px;
+    
   }
   
   .chatbot-header {
@@ -542,20 +528,26 @@ body.chatbot-mode .bottom-navbar {
   
   .chatbot-header h1 {
     font-size: 18px;
+    margin-right: 35px;
   }
   
  
 }
 
 @media (max-width: 480px) {
+  .chatbot-app{
+    margin-top: -60px;
+    height: 90vh;
+  }
+  
   .ai-avatar {
-    width: 60px;
-    height: 60px;
+    width: 40px;
+    height: 40px;
     font-size: 24px;
   }
   
   .welcome-content h2 {
-    font-size: 20px;
+    font-size: 10px;
   }
   
   .quick-card {
@@ -593,7 +585,7 @@ body.chatbot-mode .bottom-navbar {
   }
   
   .chatbot-container {
-    margin-top: 52px;
+    margin-top: 60px; /* Match header height for mobile */
   }
   
   .back-btn {
