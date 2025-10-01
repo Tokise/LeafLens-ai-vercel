@@ -1,3 +1,5 @@
+
+// Clean, reliable service worker for LeafLens AI
 const CACHE_NAME = 'leaflens-ai-cache-v1';
 const urlsToCache = [
   '/',
@@ -10,9 +12,7 @@ const urlsToCache = [
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
   self.skipWaiting();
 });
@@ -34,13 +34,15 @@ self.addEventListener('fetch', event => {
     caches.match(event.request).then(response => {
       return response || fetch(event.request).then(fetchRes => {
         // Optionally cache new requests
-        return caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, fetchRes.clone());
-          return fetchRes;
-        });
+        if (event.request.url.startsWith(self.location.origin)) {
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, fetchRes.clone());
+          });
+        }
+        return fetchRes;
       }).catch(() => {
-        // Offline fallback (optional)
-        if (event.request.destination === 'document') {
+        // Offline fallback for navigation requests
+        if (event.request.mode === 'navigate') {
           return caches.match('/index.html');
         }
       });

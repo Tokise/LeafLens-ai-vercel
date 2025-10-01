@@ -20,6 +20,17 @@ if (typeof window !== "undefined" && window.Capacitor) {
 
 
 
+// Dummy plant detection function (replace with Plant.id API integration)
+async function detectPlant(base64Image) {
+  // Example: always returns false for empty/blank images, true otherwise
+  // Replace with real API call
+  // For demo, randomly decide if plant is detected
+  // return await plantIdApi(base64Image)
+  if (!base64Image || base64Image.length < 100) return false;
+  // Simulate detection: 80% chance plant detected
+  return Math.random() < 0.8;
+}
+
 const ScanButton = ({ onCapture }) => {
   const { theme } = useTheme();
   const [showTimerSelect, setShowTimerSelect] = useState(false);
@@ -108,6 +119,7 @@ const ScanButton = ({ onCapture }) => {
         await new Promise((res) => setTimeout(res, timer * 1000));
       }
 
+      let imageData;
       if (isAndroidWrapper() && CameraModule) {
         // Capacitor Android capture
         const result = await CameraModule.getPhoto({
@@ -118,8 +130,12 @@ const ScanButton = ({ onCapture }) => {
           direction: facingMode === "user" ? "FRONT" : "BACK",
           flash: flashMode.toUpperCase(),
         });
-        if (result.base64String) onCapture(result.base64String);
-        else toast.error("Failed to capture image.");
+        imageData = result.base64String;
+        if (!imageData) {
+          toast.error("Failed to capture image.");
+          setLoading(false);
+          return;
+        }
       } else {
         // Web capture via canvas
         if (!videoRef.current) {
@@ -131,9 +147,17 @@ const ScanButton = ({ onCapture }) => {
         canvas.width = videoRef.current.videoWidth;
         canvas.height = videoRef.current.videoHeight;
         canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
-        const imageData = canvas.toDataURL("image/jpeg").split(",")[1];
-        onCapture(imageData);
+        imageData = canvas.toDataURL("image/jpeg").split(",")[1];
       }
+
+      // Plant detection before showing info
+      const hasPlant = await detectPlant(imageData);
+      if (!hasPlant) {
+        toast.error("No plant detected in the image.");
+        setLoading(false);
+        return;
+      }
+      onCapture(imageData);
     } catch (err) {
       console.error(err);
       toast.error("Failed to capture image.");
@@ -161,11 +185,11 @@ const ScanButton = ({ onCapture }) => {
             </button>
           )}
           <button className={`icon-btn${showGrid ? ' active' : ''}`} onClick={toggleGrid}>
-            <FontAwesomeIcon icon={faTh} color={showGrid ? '#4CAF50' : theme === 'dark' ? '#fff' : '#222'} />
+            <FontAwesomeIcon icon={faTh} color={showGrid ? '#4CAF50' : theme === 'dark' ? '#fff' : '#fff'} />
           </button>
           <div style={{ position: 'relative' }}>
             <button className={`icon-btn${timer > 0 ? ' active' : ''}`} onClick={() => setShowTimerSelect(v => !v)}>
-              <FontAwesomeIcon icon={faClock} color={timer > 0 ? '#4CAF50' : theme === 'dark' ? '#fff' : '#222'} />
+              <FontAwesomeIcon icon={faClock} color={timer > 0 ? '#4CAF50' : theme === 'dark' ? '#fff' : '#fff'} />
             </button>
             {showTimerSelect && (
               <div className="timer-select-dropdown" style={{ position: 'absolute', top: 40, right: 0, background: theme === 'dark' ? '#222' : '#fff', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.15)', zIndex: 20 }}>
@@ -260,11 +284,15 @@ const ScanButton = ({ onCapture }) => {
             const file = e.target.files[0];
             if (file) {
               toast.success('Image selected!');
-              // Convert image to base64 and pass to onCapture
+              // Convert image to base64 and check for plant
               const reader = new FileReader();
-              reader.onload = function(evt) {
-                // evt.target.result is a base64 data URL
+              reader.onload = async function(evt) {
                 const base64 = evt.target.result.split(',')[1];
+                const hasPlant = await detectPlant(base64);
+                if (!hasPlant) {
+                  toast.error("No plant detected in the image.");
+                  return;
+                }
                 onCapture(base64);
               };
               reader.readAsDataURL(file);
