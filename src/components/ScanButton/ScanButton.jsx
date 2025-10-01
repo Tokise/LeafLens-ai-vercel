@@ -20,15 +20,37 @@ if (typeof window !== "undefined" && window.Capacitor) {
 
 
 
-// Dummy plant detection function (replace with Plant.id API integration)
+// Real Plant.id API integration for plant detection
+const PLANT_ID_API_KEY = import.meta.env.VITE_PLANTID_API_KEY;
+const PLANT_ID_API_URL = 'https://api.plant.id/v2/identify';
+
 async function detectPlant(base64Image) {
-  // Example: always returns false for empty/blank images, true otherwise
-  // Replace with real API call
-  // For demo, randomly decide if plant is detected
-  // return await plantIdApi(base64Image)
   if (!base64Image || base64Image.length < 100) return false;
-  // Simulate detection: 80% chance plant detected
-  return Math.random() < 0.8;
+  try {
+    const response = await fetch(PLANT_ID_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Api-Key': PLANT_ID_API_KEY,
+      },
+      body: JSON.stringify({
+        images: [base64Image],
+        /* You can add modifiers, language, etc. here */
+        /* modifiers: ['crops_fast', 'similar_images'], */
+        /* language: 'en', */
+      }),
+    });
+    const data = await response.json();
+    // Check if any suggestion has high probability (e.g., > 0.5)
+    if (data && data.suggestions && Array.isArray(data.suggestions)) {
+      const found = data.suggestions.some(s => s.probability > 0.5);
+      return found;
+    }
+    return false;
+  } catch (err) {
+    console.error('Plant.id API error:', err);
+    return false;
+  }
 }
 
 const ScanButton = ({ onCapture }) => {
