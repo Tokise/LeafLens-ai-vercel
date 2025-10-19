@@ -2,52 +2,149 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: .5rem;
+  padding: 0.5rem 1rem;
   position: fixed;
-  top: .5px;
+  top: 0;
   left: 0;
   right: 0;
   z-index: 100;
   background-color: var(--header-bg);
+  box-shadow: 0 2px 8px var(--shadow-color);
 }
 
-.profile-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  cursor: pointer;
-  background: var(--primary-color);
+/* ------------------------- */
+/* Left Section: Logo + Search */
+/* ------------------------- */
+.left-section {
   display: flex;
   align-items: center;
+  gap: 0.8rem;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.logo-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+  display: none;
+  align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px var(--shadow-color);
-  transition: transform 0.2s ease;
-  margin-left: 15px;
+  background-color: transparent;
 }
 
-.profile-icon:hover {
-  transform: scale(1.05);
-}
-
-.profile-icon img {
+.logo-icon img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.profile-placeholder {
-  color: white;
-  font-size: 1.2rem;
-  font-weight: 500;
+.logo-text {
+  height: 2rem;
+  width: auto;
+  display: flex;
+  align-items: center;
+  margin-left: -20px;
 }
 
-.notification-icon {
+.logo-text img {
+  height: 500%;
+  width: auto;
+}
+
+/* ------------------------- */
+/* Search beside logo */
+/* ------------------------- */
+.search-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-left: -20px;
+}
+
+/* Icon button */
+.search-toggle {
+  background: var(--card-bg);
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.search-toggle:hover {
+  background: var(--hover-bg);
+  transform: scale(1.05);
+}
+
+.search-toggle svg {
+  color: var(--text-color);
+  font-size: 1rem;
+}
+
+/* Inline expanding input */
+.search-bar-inline {
+  opacity: 0;
+  width: 0;
+  margin-left: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.search-bar-inline.expanded {
+  width: 240px;
+  opacity: 1;
+  margin-left: 0.5rem;
+  animation: fadeExpandRight 0.3s ease forwards;
+}
+
+.search-bar-inline input {
+  width: 100%;
+  padding: 0.45rem 0.8rem;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+/* Fade + slide animation */
+@keyframes fadeExpandRight {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ------------------------- */
+/* Header Actions (Bell, Cog) */
+/* ------------------------- */
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.notification-icon,
+.settings-icon {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   display: flex;
-  margin-right: 15px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -56,12 +153,14 @@
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.notification-icon:hover {
+.notification-icon:hover,
+.settings-icon:hover {
   transform: scale(1.05);
   background: var(--hover-bg);
 }
 
-.notification-icon svg {
+.notification-icon svg,
+.settings-icon svg {
   font-size: 1.2rem;
   color: var(--text-color);
 }
@@ -77,3 +176,24 @@
   border: 2px solid var(--card-bg);
 }
 
+/* ------------------------- */
+/* Responsive */
+/* ------------------------- */
+@media (max-width: 769px) {
+  .logo-text {
+    display: none;
+  }
+
+  .logo-icon {
+    width: 2rem;
+    height: 2rem;
+    margin-left: -8px;
+    display: flex;
+  }
+  .search-container {
+    margin-left: 10px;
+  }
+  .search-bar-inline.expanded {
+    width: 150px;
+  }
+}

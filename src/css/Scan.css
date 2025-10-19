@@ -707,6 +707,241 @@ body.camera-mode .bottom-navbar {
   font-size: 16px;
 }
 
+/* Analyzing Overlay */
+.analyzing-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.analyzing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+  max-width: 400px;
+}
+
+/* Leaf Icon Container */
+.leaf-icon-container {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(56, 142, 60, 0.2));
+  border: 3px solid #4CAF50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 32px;
+  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 40px rgba(76, 175, 80, 0.4), 
+              0 0 80px rgba(76, 175, 80, 0.2),
+              inset 0 0 40px rgba(76, 175, 80, 0.1);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 40px rgba(76, 175, 80, 0.4), 
+                0 0 80px rgba(76, 175, 80, 0.2),
+                inset 0 0 40px rgba(76, 175, 80, 0.1);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 60px rgba(76, 175, 80, 0.6), 
+                0 0 100px rgba(76, 175, 80, 0.3),
+                inset 0 0 50px rgba(76, 175, 80, 0.15);
+  }
+}
+
+.leaf-icon {
+  font-size: 48px;
+  color: #4CAF50;
+  animation: rotate 3s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Glowing Ring Effect */
+.leaf-icon-container::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: #4CAF50;
+  border-right-color: #4CAF50;
+  animation: rotateRing 2s linear infinite;
+  opacity: 0.6;
+}
+
+@keyframes rotateRing {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.leaf-icon-container::after {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  right: -15px;
+  bottom: -15px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-bottom-color: rgba(76, 175, 80, 0.5);
+  border-left-color: rgba(76, 175, 80, 0.5);
+  animation: rotateRingReverse 3s linear infinite;
+  opacity: 0.4;
+}
+
+@keyframes rotateRingReverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.analyzing-content h2 {
+  color: white;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  letter-spacing: 0.5px;
+}
+
+.analyzing-content p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  margin: 0 0 32px 0;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 280px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4CAF50, #66BB6A, #81C784, #4CAF50);
+  background-size: 200% 100%;
+  border-radius: 10px;
+  animation: progressAnimation 2s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+}
+
+@keyframes progressAnimation {
+  0% {
+    width: 0%;
+    background-position: 0% 0%;
+  }
+  50% {
+    width: 70%;
+    background-position: 100% 0%;
+  }
+  100% {
+    width: 100%;
+    background-position: 0% 0%;
+  }
+}
+
+/* Responsive Design for Analyzing Overlay */
+@media (max-width: 768px) {
+  .analyzing-content {
+    padding: 30px 20px;
+  }
+
+  .leaf-icon-container {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 24px;
+  }
+
+  .leaf-icon {
+    font-size: 40px;
+  }
+
+  .analyzing-content h2 {
+    font-size: 24px;
+  }
+
+  .analyzing-content p {
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+
+  .progress-bar {
+    width: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .leaf-icon-container {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 20px;
+  }
+
+  .leaf-icon {
+    font-size: 36px;
+  }
+
+  .analyzing-content h2 {
+    font-size: 22px;
+  }
+
+  .analyzing-content p {
+    font-size: 14px;
+  }
+
+  .progress-bar {
+    width: 200px;
+    height: 5px;
+  }
+}
+
 /* Modal Responsive Design */
 @media (max-width: 768px) {
   .modal-content {

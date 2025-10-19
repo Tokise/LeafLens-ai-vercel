@@ -5,7 +5,7 @@ import {
   faComments,
   faCamera,
   faHeart,
-  faCog
+  faClipboardList
 } from '@fortawesome/free-solid-svg-icons';
 import '../../css/Navbar.css';
 
@@ -20,29 +20,24 @@ const Navbar = () => {
     <nav className="bottom-navbar">
       <Link to="/" className={`nav-item ${isActive('/') ? 'active' : ''}`}>
         <FontAwesomeIcon icon={faHome} className="nav-icon" />
-        
       </Link>
-      
-      <Link to="/chatbot" className={`nav-item ${isActive('/chatbot') ? 'active' : ''}`}>
+
+      <Link to="/messages" className={`nav-item ${isActive('/messages') || location.pathname.startsWith('/chat/') ? 'active' : ''}`}>
         <FontAwesomeIcon icon={faComments} className="nav-icon" />
-       
       </Link>
       
       <Link to="/scan" className={`nav-item ${isActive('/scan') ? 'active' : ''}`}>
         <div className="scan-button">
           <FontAwesomeIcon icon={faCamera} className="nav-icon" />
         </div>
-       
+      </Link>
+
+      <Link to="/monitoring" className={`nav-item ${isActive('/monitoring') ? 'active' : ''}`}>
+        <FontAwesomeIcon icon={faClipboardList} className="nav-icon" />
       </Link>
       
       <Link to="/favorites" className={`nav-item ${isActive('/favorites') ? 'active' : ''}`}>
         <FontAwesomeIcon icon={faHeart} className="nav-icon" />
-        
-      </Link>
-      
-      <Link to="/settings" className={`nav-item ${isActive('/settings') ? 'active' : ''}`}>
-        <FontAwesomeIcon icon={faCog} className="nav-icon" />
-       
       </Link>
     </nav>
   );

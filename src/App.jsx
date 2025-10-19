@@ -1,12 +1,15 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/navbar/Navbar';
-import Home from './pages/Home/Home';
+import Community from './pages/Community/Community';
 import Scan from './pages/Scan/Scan';
 import Favorites from './pages/Favorites/Favorites';
 import Chatbot from './pages/Chatbot/Chatbot';
 import Notification from './pages/Notification/Notification';
 import Settings from './pages/Settings/Settings';
 import Login from './pages/Auth/Login';
+import Chat from './pages/Chat/Chat';
+import Messages from './pages/Messages/Messages';
+import Monitoring from './pages/Monitoring/Monitoring';
 import { useState, useEffect } from 'react';
 import { auth } from './firebase/auth';
 import { getRedirectResult } from 'firebase/auth';
@@ -22,7 +25,6 @@ function App() {
 
   useEffect(() => {
     console.log('App mounting, setting up auth listener...');
-    // Complete any pending OAuth redirect as early as possible
     getRedirectResult(auth)
       .then((result) => {
         if (result && result.user) {
@@ -36,9 +38,7 @@ function App() {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       console.log('Auth state changed:', user ? 'User logged in' : 'No user');
       setUser(user);
-      // Scope notifications by user
       notificationService.setUser(user ? user.uid : 'guest');
-      // Begin real-time sync of weather notifications for this user
       if (user) {
         weatherService.subscribeToRemoteWeather(user.uid);
       } else {
@@ -46,15 +46,12 @@ function App() {
       }
       setLoading(false);
       
-      // Initialize weather service when user logs in
       if (user) {
         console.log('Initializing services for logged in user...');
-        // Initialize weather service
         weatherService.init().catch(error => {
           console.error('Failed to initialize weather service:', error);
         });
         
-        // Initialize push notifications
         pushNotificationService.init().catch(error => {
           console.error('Failed to initialize push notifications:', error);
         });
@@ -83,28 +80,31 @@ function App() {
     <ThemeProvider>
       <Router>
         <Toaster position="top-center" />
-      {user ? (
-        <>
-          <Navbar />
-          <main className="app-main">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/scan" element={<Scan />} />
-              <Route path="/favorites" element={<Favorites />} />
-              <Route path="/chatbot" element={<Chatbot />} />
-              <Route path="/notifications" element={<Notification />} />
-              <Route path="/settings" element={<Settings />} />
-            </Routes>
-          </main>
-        </>
-      ) : (
-        <Routes>
-          <Route path="*" element={<Login />} />
-        </Routes>
-      )}
-    </Router>
+        {user ? (
+          <>
+            <Navbar />
+            <main className="app-main">
+              <Routes>
+                <Route path="/" element={<Community />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/chat/:userId" element={<Chat />} />
+                <Route path="/scan" element={<Scan />} />
+                <Route path="/monitoring" element={<Monitoring />} />
+                <Route path="/favorites" element={<Favorites />} />
+                <Route path="/chatbot" element={<Chatbot />} />
+                <Route path="/notifications" element={<Notification />} />
+                <Route path="/settings" element={<Settings />} />
+              </Routes>
+            </main>
+          </>
+        ) : (
+          <Routes>
+            <Route path="*" element={<Login />} />
+          </Routes>
+        )}
+      </Router>
     </ThemeProvider>
   );
 }
 
-export default App
+export default App;

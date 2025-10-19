@@ -9,18 +9,18 @@ import { faXmark, faLeaf, faBook, faSun, faTint, faTemperatureHigh, faSeedling, 
 import { useTheme } from '../../context/ThemeContext';
 import '../../css/Scan.css';
 
-
-
 const Scan = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [capturedImage, setCapturedImage] = useState(null);
   const [plantInfo, setPlantInfo] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleCapture = async (imageData) => {
     setCapturedImage(`data:image/jpeg;base64,${imageData}`);
-    toast.loading("Identifying plant...", { id: "plantid" });
+    setIsAnalyzing(true);
+    
     try {
       // Plant.id API
       const plantIdApiKey = import.meta.env.VITE_PLANTID_API_KEY;
@@ -32,21 +32,35 @@ const Scan = () => {
         },
         body: JSON.stringify({
           images: [imageData],
-          /* You can add modifiers, plant details, etc. if needed */
         })
       });
       if (!plantIdRes.ok) throw new Error('Plant.id API error');
       const plantIdData = await plantIdRes.json();
       const suggestions = plantIdData.suggestions || [];
       if (suggestions.length === 0) throw new Error('No plant found');
-      // Use best suggestion
+      
       const best = suggestions[0];
       const plantName = best.plant_name || 'Unknown';
       const scientificName = best.plant_details?.scientific_name || plantName;
-      toast.dismiss("plantid");
-      toast.loading("Getting care guide and fun facts...", { id: "openrouter-ai" });
-      // Query OpenRouter
-      const openRouterPrompt = `Give a care guide and 3 fun facts for the plant: ${plantName} (${scientificName}). Format response as JSON with keys: careGuide (object with water, sunlight, soil, temperature), funFacts (array of strings), description (string).`;
+      
+      // Improved prompt with better formatting instructions
+      const openRouterPrompt = `Provide information about ${plantName} (${scientificName}). 
+Return ONLY valid JSON (no markdown, no code blocks) in this exact format:
+{
+  "description": "A brief 2-3 sentence description",
+  "careGuide": {
+    "water": "Watering instructions",
+    "sunlight": "Light requirements",
+    "soil": "Soil type needed",
+    "temperature": "Temperature range"
+  },
+  "funFacts": [
+    "Interesting fact 1",
+    "Interesting fact 2",
+    "Interesting fact 3"
+  ]
+}`;
+
       const openRouterApiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
       const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -55,28 +69,65 @@ const Scan = () => {
           'Authorization': `Bearer ${openRouterApiKey}`,
         },
         body: JSON.stringify({
-          model: 'x-ai/grok-4-fast:free',
+          model: 'meta-llama/llama-4-maverick:free',
           messages: [{ role: 'user', content: openRouterPrompt }],
-          max_tokens: 512
+          max_tokens: 700,
+          temperature: 0.7
         })
       });
+      
       const openRouterData = await openRouterRes.json();
       let aiCareGuide = {}, aiFunFacts = [], aiDescription = '';
+      
       try {
-        const aiContent = JSON.parse(openRouterData.choices[0].message.content);
-        aiCareGuide = aiContent.careGuide || {};
-        aiFunFacts = aiContent.funFacts || [];
-        aiDescription = aiContent.description || '';
+        let aiContent = openRouterData.choices[0].message.content;
+        
+        console.log('Raw AI Response:', aiContent);
+        
+        aiContent = aiContent.trim();
+        if (aiContent.startsWith('```json')) {
+          aiContent = aiContent.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+        } else if (aiContent.startsWith('```')) {
+          aiContent = aiContent.replace(/```\n?/g, '');
+        }
+        
+        const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          aiContent = jsonMatch[0];
+        }
+        
+        const parsedContent = JSON.parse(aiContent);
+        aiCareGuide = parsedContent.careGuide || {};
+        aiFunFacts = parsedContent.funFacts || [];
+        aiDescription = parsedContent.description || '';
+        
+        if (!aiFunFacts.length) {
+          console.warn('No fun facts received, using fallback');
+          aiFunFacts = [
+            `${plantName} is a fascinating plant species.`,
+            'This plant has unique characteristics that make it special.',
+            'Plant care varies by species and environment.'
+          ];
+        }
+        
       } catch (e) {
+        console.error('Failed to parse AI response:', e);
+        console.log('Attempted to parse:', openRouterData.choices[0].message.content);
+        
         aiCareGuide = {
-          water: 'See external sources',
-          sunlight: 'See external sources',
-          soil: 'See external sources',
-          temperature: 'See external sources',
+          water: 'Water when soil is dry to touch',
+          sunlight: 'Bright, indirect light',
+          soil: 'Well-draining potting mix',
+          temperature: '65-75°F (18-24°C)',
         };
-        aiFunFacts = [];
-        aiDescription = '';
+        aiFunFacts = [
+          `${plantName} is a unique plant species worth learning more about.`,
+          'Each plant has specific care requirements for optimal growth.',
+          'Regular observation helps you understand your plant\'s needs.'
+        ];
+        aiDescription = `${plantName} is a plant species that requires proper care and attention.`;
       }
+      
       const plantInfo = {
         name: plantName,
         scientificName,
@@ -84,15 +135,16 @@ const Scan = () => {
         careGuide: aiCareGuide,
         funFacts: aiFunFacts,
       };
+      
       setPlantInfo(plantInfo);
-      toast.dismiss("openrouter-ai");
-      toast.success("Plant info ready!");
+      setIsAnalyzing(false);
+      toast.success("Plant identified!");
       setShowModal(true);
+      
     } catch (err) {
       console.error(err);
-      toast.dismiss("plantid");
-      toast.dismiss("openrouter-ai");
-      toast.error("Failed to get plant info. Please try again.");
+      setIsAnalyzing(false);
+      toast.error("Failed to identify plant. Please try again.");
     }
   };
 
@@ -122,7 +174,6 @@ const Scan = () => {
   };
 
   useEffect(() => {
-    // Add camera mode class to body when scan page is active
     document.body.classList.add('camera-mode');
     return () => {
       document.body.classList.remove('camera-mode');
@@ -133,6 +184,24 @@ const Scan = () => {
     <div className="scan-page" style={{ background: theme === 'dark' ? '#111' : '#f8f8f8', minHeight: '100vh' }}>
       {/* Scan Button */}
       <ScanButton onCapture={handleCapture} />
+
+      {/* Analyzing Overlay */}
+      {isAnalyzing && (
+        <div className="analyzing-overlay">
+          <div className="analyzing-content">
+            <div className="analyzing-icon">
+              <div className="leaf-icon-container">
+                <FontAwesomeIcon icon={faLeaf} className="leaf-icon" />
+              </div>
+            </div>
+            <h2>Analyzing Plant...</h2>
+            <p>Our AI is identifying your plant</p>
+            <div className="progress-bar">
+              <div className="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal for plant info */}
       {showModal && plantInfo && (
@@ -177,7 +246,7 @@ const Scan = () => {
                 </div>
               </div>
             </div>
-            {plantInfo.funFacts && (
+            {plantInfo.funFacts && plantInfo.funFacts.length > 0 && (
               <div className="fun-facts-section">
                 <div className="section-title"><FontAwesomeIcon icon={faBook} /> Fun Facts</div>
                 <div className="fun-facts-list">
