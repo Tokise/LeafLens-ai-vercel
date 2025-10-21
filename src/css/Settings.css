@@ -194,7 +194,16 @@
 .settings-section .logout-btn {
   width: 80%;
   padding: 14px 0;
-  margin-left: 40px;
+  margin-left: 130px;
  
+}
+
+@media (max-width:769px) {
+  .settings-section .logout-btn {
+  width: 80%;
+  padding: 14px 0;
+  margin-left: 36px;
+ 
+}
 }
 

@@ -9,7 +9,11 @@ import {
   signInWithPopup,
   signInWithCredential
 } from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { auth } from './firebase';
+
+// Firestore init
+const db = getFirestore();
 
 // Detect if running inside Median.co (Android WebView)
 const isAndroidWrapper = () => {
@@ -25,10 +29,31 @@ if (isAndroidWrapper()) {
   });
 }
 
+// Utility to save/update Firestore user profile
+const saveUserProfile = async (user) => {
+  if (!user) return;
+  try {
+    await setDoc(
+      doc(db, "users", user.uid),
+      {
+        uid: user.uid,
+        displayName: user.displayName || user.email.split("@")[0],
+        email: user.email,
+        photoURL: user.photoURL || null,
+        createdAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+  } catch (err) {
+    console.error("Error saving user profile:", err);
+  }
+};
+
 // Email/Password Sign-in
 export const signIn = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    await saveUserProfile(userCredential.user);
     return { user: userCredential.user, error: null };
   } catch (error) {
     return { user: null, error: error.message };
@@ -40,6 +65,7 @@ export const signUp = async (email, password, displayName) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(userCredential.user, { displayName });
+    await saveUserProfile(userCredential.user);
     return { user: userCredential.user, error: null };
   } catch (error) {
     return { user: null, error: error.message };
@@ -49,7 +75,6 @@ export const signUp = async (email, password, displayName) => {
 // Google Sign-in (Dual platform)
 export const signInWithGoogle = async () => {
   try {
-    // Always use Capacitor plugin for Median.co/Android
     if (isAndroidWrapper()) {
       if (!GoogleAuth) {
         return { user: null, error: 'GoogleAuth plugin not available.' };
@@ -59,28 +84,20 @@ export const signInWithGoogle = async () => {
         const idToken = googleUser.authentication.idToken;
         const credential = GoogleAuthProvider.credential(idToken);
         const firebaseUser = await signInWithCredential(auth, credential);
+        await saveUserProfile(firebaseUser.user);
         return { user: firebaseUser.user, error: null };
       } catch (pluginError) {
         console.error("Google sign-in error (plugin):", pluginError);
         return { user: null, error: pluginError.message };
       }
     } else {
-      // Web only: use popup
-      try {
-        const provider = new GoogleAuthProvider();
-        provider.addScope('email');
-        provider.addScope('profile');
-        provider.setCustomParameters({ prompt: 'select_account' });
-        const userCredential = await signInWithPopup(auth, provider);
-        return { user: userCredential.user, error: null };
-      } catch (webError) {
-        // If popup is blocked, suggest user to enable popups
-        if (webError.code === 'auth/popup-blocked') {
-          return { user: null, error: 'Popup blocked. Please enable popups for Google sign-in.' };
-        }
-        console.error("Google sign-in error (web):", webError);
-        return { user: null, error: webError.message };
-      }
+      const provider = new GoogleAuthProvider();
+      provider.addScope('email');
+      provider.addScope('profile');
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const userCredential = await signInWithPopup(auth, provider);
+      await saveUserProfile(userCredential.user);
+      return { user: userCredential.user, error: null };
     }
   } catch (error) {
     console.error("Google sign-in error (outer):", error);

@@ -60,11 +60,12 @@ body.chatbot-mode .bottom-navbar {
   width: 36px;
   height: 36px;
   border: none;
-  background: transparent;
+  background: transparent !important;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 15px;
   cursor: pointer;
   color: var(--text-color);
   transition: all 0.3s ease;
@@ -84,9 +85,9 @@ body.chatbot-mode .bottom-navbar {
   max-width: 1000px;
   margin: 0 auto;
   width: 100%;
-  padding: 16px; /* Add right padding for scrollbar */
+  padding: 8px; /* Add right padding for scrollbar */
   gap: 12px;
-  margin-top: 30px; /* Match header height exactly, so messages start just below header */
+  margin-top: 200px; /* Match header height exactly, so messages start just below header */
   overflow-y: auto;
   height: calc(100vh - 60px); /* Account for header height */
   /* Hide scrollbar but keep functionality */
@@ -244,8 +245,7 @@ body.chatbot-mode .bottom-navbar {
   display: flex;
   flex-direction: column;
   gap: 10px;
-
-  padding: 18px 18px 120px 0; /* Add right padding for scrollbar */
+  padding: 18px 18px 80px 0; /* Add right padding for scrollbar */
   overflow-y: auto;
   align-items: flex-start;
   scrollbar-width: thin;

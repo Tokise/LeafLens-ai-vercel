@@ -18,6 +18,7 @@ import {
 import { getUserFavorites, removeFromFavorites } from '../../firebase/favorites';
 import Header from '../../components/header/Header';
 import '../../css/Favorites.css';
+import Navbar from '../../components/navbar/Navbar';
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
@@ -84,6 +85,7 @@ const Favorites = () => {
   return (
     <div className="favorites-container">
      <Header />
+     <Navbar />
       <h1>Favorites</h1>
       {error && (
         <div className="error-message">
@@ -128,16 +130,6 @@ const Favorites = () => {
                 </div>
 
                 <div className="plant-actions-main">
-                  <button
-                    className="action-btn primary"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedPlant(favorite);
-                    }}
-                    title="View Details"
-                  >
-                    <FontAwesomeIcon icon={faEye} />
-                  </button>
                   <button
                     className="action-btn secondary"
                     onClick={(e) => {

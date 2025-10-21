@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://localhost:5173", "https://leaflens-ai-a12c1.web.app", "https://leaf-lens-ai-vercel.vercel.app/"],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "x-goog-meta-*"]
+  }
+]

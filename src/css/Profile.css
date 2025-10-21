@@ -1,0 +1,80 @@
+/* Make profile scrollable */
+.profile-container {
+  height: 100vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 60px;
+}
+
+/* Modernized card */
+.profile-card {
+  background: rgba(30, 30, 30, 0.6);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 80px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Profile top */
+.profile-top {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.profile-avatar img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+/* Responsive text */
+.profile-meta {
+  flex: 1;
+  color: #f5f5f5;
+}
+
+.profile-name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.profile-email {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.profile-actions {
+  margin-top: 10px;
+}
+
+.profile-actions .btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.profile-actions .btn.primary {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: #fff;
+}
+
+.profile-actions .btn.outline {
+  border: 1px solid #aaa;
+  background: transparent;
+  color: #fff;
+}
+
+.profile-actions .btn:hover {
+  transform: scale(1.05);
+}
+
+

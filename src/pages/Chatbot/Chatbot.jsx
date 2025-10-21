@@ -263,7 +263,7 @@ const Chatbot = () => {
   <div className="chatbot-app" >
       {/* Fixed Header with Back Icon and Title */}
       <div className="chatbot-header">
-        <button className="back-btn" onClick={() => navigate(-1)} aria-label="Back">
+        <button className="back-btn" onClick={() => navigate('/')} aria-label="Back">
           <FontAwesomeIcon icon={faArrowLeft} size="lg" />
         </button>
         <h1>

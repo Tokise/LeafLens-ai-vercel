@@ -1,7 +1,7 @@
 .messages-container {
   min-height: 100vh;
   background: var(--bg-color);
-  margin-top: 10px;
+  margin-top: 70px;
 
 }
 
@@ -90,7 +90,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
+  padding: 30px;
   background: var(--card-bg);
   border-bottom: 1px solid var(--border-color);
   cursor: pointer;

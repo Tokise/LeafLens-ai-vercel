@@ -19,6 +19,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-hot-toast';
 import '../../css/Settings.css';
+import Navbar from '../../components/navbar/Navbar';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -79,7 +80,7 @@ const Settings = () => {
   return (
     <div className="settings-page">
       <Header />
-      
+      <Navbar />
       <div className="settings-content">
         <div className="profile-section">
           <div className="profile-avatar-large">

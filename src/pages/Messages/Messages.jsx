@@ -1,182 +1,121 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faEllipsisV, faCircle } from '@fortawesome/free-solid-svg-icons';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, query, where, onSnapshot, orderBy, getDocs, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
-import app from '../../firebase/firebase';
-import { useTheme } from '../../context/ThemeContext';
-import Header from '../../components/header/Header';
-import '../../css/Messages.css';
+import React, { useEffect, useState } from "react";
+import { getFirestore, collection, query, where, onSnapshot, getDocs, doc, setDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import "../../css/Messages.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faComments, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import toast from "react-hot-toast";
 
 const Messages = () => {
-  const { theme } = useTheme();
+  const db = getFirestore();
+  const auth = getAuth();
   const navigate = useNavigate();
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const user = auth.currentUser;
+  const currentUser = auth.currentUser;
 
-  const [conversations, setConversations] = useState([]);
+  const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
 
+  // ✅ Load all accepted friends
   useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    loadConversations();
-  }, [user]);
+    if (!currentUser) return;
+    const friendsRef = collection(db, "friends");
 
-  const loadConversations = async () => {
-    try {
-      // First, get all users to create sample conversations
-      const usersRef = collection(db, 'users');
-      const usersSnapshot = await getDocs(usersRef);
-      const allUsers = [];
-      
-      usersSnapshot.forEach(doc => {
-        if (doc.id !== user.uid) {
-          allUsers.push({ id: doc.id, ...doc.data() });
+    const q = query(
+      friendsRef,
+      where("status", "==", "accepted"),
+      where("participants", "array-contains", currentUser.uid)
+    );
+
+    const unsub = onSnapshot(
+      q,
+      async (snapshot) => {
+        const friendList = [];
+        for (const docSnap of snapshot.docs) {
+          const data = docSnap.data();
+          const friendId = data.participants.find((id) => id !== currentUser.uid);
+
+          // Fetch friend info from users collection
+          const userDoc = await getDocs(query(collection(db, "users"), where("id", "==", friendId)));
+          if (!userDoc.empty) {
+            const friendData = userDoc.docs[0].data();
+            friendList.push({ id: friendId, ...friendData });
+          }
         }
-      });
 
-      // Listen to conversations
-      const conversationsRef = collection(db, 'conversations');
-      const q = query(
-        conversationsRef,
-        where('participants', 'array-contains', user.uid),
-        orderBy('lastMessageTime', 'desc')
+        setFriends(friendList);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Error loading friends:", err);
+        toast.error("Failed to load friends");
+        setLoading(false);
+      }
+    );
+
+    return () => unsub();
+  }, [currentUser]);
+
+  // ✅ Open or create a chat
+  const openChat = async (friendId) => {
+    try {
+      if (!currentUser || !friendId) return;
+
+      // Sorted deterministic conversation ID
+      const convoId = [currentUser.uid, friendId].sort().join("_");
+      const convoRef = doc(db, "conversations", convoId);
+
+      // Create if it doesn't exist
+      await setDoc(
+        convoRef,
+        {
+          participants: [currentUser.uid, friendId],
+          createdAt: new Date(),
+          lastMessageAt: new Date(),
+        },
+        { merge: true }
       );
 
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const convos = [];
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          convos.push({ 
-            id: doc.id, 
-            ...data,
-            otherUserId: data.participants?.find(id => id !== user.uid) || null
-          });
-        });
-        
-        // If no conversations, show all users as potential conversations
-        if (convos.length === 0 && allUsers.length > 0) {
-          const potentialConvos = allUsers.slice(0, 5).map((otherUser, index) => ({
-            id: `potential-${otherUser.id}`,
-            otherUserId: otherUser.id,
-            otherUserName: otherUser.displayName || otherUser.email?.split('@')[0] || 'User',
-            otherUserPhoto: otherUser.photoURL || null,
-            lastMessage: 'Start a conversation',
-            lastMessageTime: null,
-            isOnline: Math.random() > 0.5,
-            unread: false
-          }));
-          setConversations(potentialConvos);
-        } else {
-          setConversations(convos);
-        }
-        setLoading(false);
-      });
-
-      return () => unsubscribe();
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-      setLoading(false);
+      navigate(`/chat/${convoId}`);
+    } catch (err) {
+      console.error("Error opening chat:", err);
+      toast.error("Unable to start chat");
     }
   };
 
-  const formatTime = (timestamp) => {
-    if (!timestamp) return '';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
-  };
-
-  const filteredConversations = conversations.filter(convo =>
-    convo.otherUserName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
-    <div className="messages-container">
-      <Header />
-      
-      <div className="search-bar">
-        <FontAwesomeIcon icon={faSearch} className="search-icon" />
-        <input
-          type="text"
-          placeholder="Search conversations..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
+    <div className="messages-page">
+      <h2 className="messages-title">
+        <FontAwesomeIcon icon={faComments} /> Messages
+      </h2>
 
-      <div className="conversations-list">
-        {loading ? (
-          <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Loading conversations...</p>
-          </div>
-        ) : filteredConversations.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">💬</div>
-            <h3>No messages yet</h3>
-            <p>Start a conversation with other plant lovers!</p>
-          </div>
-        ) : (
-          filteredConversations.map((convo) => (
+      {loading ? (
+        <div className="messages-loading">
+          <FontAwesomeIcon icon={faSpinner} spin /> Loading friends...
+        </div>
+      ) : friends.length === 0 ? (
+        <p className="no-friends">You have no accepted friends yet.</p>
+      ) : (
+        <div className="friends-list">
+          {friends.map((friend) => (
             <div
-              key={convo.id}
-              className={`conversation-item ${convo.unread ? 'unread' : ''}`}
-              onClick={() => navigate(`/chat/${convo.otherUserId}`)}
+              key={friend.id}
+              className="friend-card"
+              onClick={() => openChat(friend.id)}
             >
-              <div className="conversation-avatar">
-                {convo.otherUserPhoto ? (
-                  <img src={convo.otherUserPhoto} alt={convo.otherUserName} />
-                ) : (
-                  <div className="avatar-placeholder">
-                    {convo.otherUserName?.charAt(0) || '?'}
-                  </div>
-                )}
-                {convo.isOnline && (
-                  <div className="online-indicator">
-                    <FontAwesomeIcon icon={faCircle} />
-                  </div>
-                )}
+              <img
+                src={friend.photoURL || "/default-avatar.png"}
+                alt={friend.displayName}
+                className="friend-avatar"
+              />
+              <div className="friend-info">
+                <h4>{friend.displayName || "Unnamed User"}</h4>
+                <p>{friend.email}</p>
               </div>
-
-              <div className="conversation-content">
-                <div className="conversation-header">
-                  <h4>{convo.otherUserName || 'Unknown User'}</h4>
-                  <span className="conversation-time">{formatTime(convo.lastMessageTime)}</span>
-                </div>
-                <div className="conversation-preview">
-                  <p>{convo.lastMessage || 'No messages yet'}</p>
-                  {convo.unread && (
-                    <div className="unread-badge">{convo.unreadCount || 1}</div>
-                  )}
-                </div>
-              </div>
-
-              <button className="conversation-options" onClick={(e) => {
-                e.stopPropagation();
-              }}>
-                <FontAwesomeIcon icon={faEllipsisV} />
-              </button>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

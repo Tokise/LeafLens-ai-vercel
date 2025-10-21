@@ -1,144 +1,151 @@
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit, startAfter, updateDoc, arrayUnion, arrayRemove, doc, serverTimestamp, increment } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getAuth } from 'firebase/auth';
-import app from './firebase';
+// community.js
+import { db } from "./firebase";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  startAfter,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { uploadToCloudinary } from "./cloudbinaryUpload"; // 👈 new import
 
-const db = getFirestore(app);
-const storage = getStorage(app);
-const auth = getAuth(app);
-
-// Create Post
+// === CREATE POST ===
 export const createPost = async (content, mediaFiles = []) => {
-  try {
-    const user = auth.currentUser;
-    if (!user) throw new Error('User not authenticated');
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) return { success: false, error: "User not authenticated" };
 
-    // Upload media files if any
-    const mediaUrls = [];
+  try {
+    // Upload each media file to Cloudinary
+    const media = [];
     for (const file of mediaFiles) {
-      const fileRef = ref(storage, `posts/${user.uid}/${Date.now()}_${file.name}`);
-      await uploadBytes(fileRef, file);
-      const url = await getDownloadURL(fileRef);
-      mediaUrls.push({ url, type: file.type.startsWith('video') ? 'video' : 'image' });
+      const upload = await uploadToCloudinary(file);
+      if (upload.success) media.push(upload);
     }
 
-    const postData = {
+    await addDoc(collection(db, "posts"), {
       userId: user.uid,
-      userName: user.displayName || user.email?.split('@')[0] || 'Anonymous',
+      userName: user.displayName || user.email.split("@")[0],
       userPhotoURL: user.photoURL || null,
       content,
-      media: mediaUrls,
+      media,
       likes: [],
       comments: [],
-      timestamp: serverTimestamp()
-    };
+      timestamp: serverTimestamp(),
+    });
 
-    const docRef = await addDoc(collection(db, 'posts'), postData);
-    return { success: true, id: docRef.id };
+    return { success: true };
   } catch (error) {
-    console.error('Error creating post:', error);
+    console.error("Error creating post:", error);
     return { success: false, error: error.message };
   }
 };
 
-// Get Posts (with pagination)
-export const getPosts = async (lastDoc = null, limitCount = 10) => {
+// === GET POSTS (with pagination) ===
+export const getPosts = async (lastDoc = null) => {
   try {
-    const postsRef = collection(db, 'posts');
-    let q = query(postsRef, orderBy('timestamp', 'desc'), limit(limitCount));
-    
-    if (lastDoc) {
-      q = query(postsRef, orderBy('timestamp', 'desc'), startAfter(lastDoc), limit(limitCount));
-    }
+    let q = query(collection(db, "posts"), orderBy("timestamp", "desc"), limit(5));
+    if (lastDoc) q = query(collection(db, "posts"), orderBy("timestamp", "desc"), startAfter(lastDoc), limit(5));
 
     const snapshot = await getDocs(q);
-    const posts = [];
-    snapshot.forEach(doc => {
-      posts.push({ id: doc.id, ...doc.data() });
-    });
+    const posts = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+    const hasMore = snapshot.docs.length === 5;
+    const newLastDoc = snapshot.docs[snapshot.docs.length - 1];
 
-    return { 
-      success: true, 
-      posts, 
-      lastDoc: snapshot.docs[snapshot.docs.length - 1] || null,
-      hasMore: snapshot.docs.length === limitCount
-    };
+    return { success: true, posts, hasMore, lastDoc: newLastDoc };
   } catch (error) {
-    console.error('Error getting posts:', error);
-    return { success: false, error: error.message, posts: [] };
+    console.error("Error fetching posts:", error);
+    return { success: false, posts: [], error: error.message };
   }
 };
 
-// Like/Unlike Post
-export const toggleLikePost = async (postId) => {
-  try {
-    const user = auth.currentUser;
-    if (!user) throw new Error('User not authenticated');
+// === TOGGLE LIKE ===
+export const toggleLikePost = async postId => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) return { success: false, error: "Not logged in" };
 
-    const postRef = doc(db, 'posts', postId);
-    const postDoc = await getDocs(query(collection(db, 'posts'), where('__name__', '==', postId)));
-    
-    if (!postDoc.empty) {
-      const postData = postDoc.docs[0].data();
-      const likes = postData.likes || [];
-      
-      if (likes.includes(user.uid)) {
-        await updateDoc(postRef, {
-          likes: arrayRemove(user.uid)
-        });
-      } else {
-        await updateDoc(postRef, {
-          likes: arrayUnion(user.uid)
-        });
-      }
-    }
+  try {
+    const postRef = doc(db, "posts", postId);
+    const snapshot = await getDocs(collection(db, "posts"));
+    const post = snapshot.docs.find(d => d.id === postId);
+    if (!post) return { success: false, error: "Post not found" };
+
+    const likes = post.data().likes || [];
+    const updatedLikes = likes.includes(user.uid)
+      ? likes.filter(uid => uid !== user.uid)
+      : [...likes, user.uid];
+
+    await addDoc(collection(db, "posts"), {
+      ...post.data(),
+      likes: updatedLikes,
+    });
 
     return { success: true };
   } catch (error) {
-    console.error('Error toggling like:', error);
+    console.error("Error toggling like:", error);
     return { success: false, error: error.message };
   }
 };
 
-// Search Users
-export const searchUsers = async (searchTerm) => {
+// === CREATE STORY ===
+export const createStory = async file => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) return { success: false, error: "User not authenticated" };
+
   try {
-    const usersRef = collection(db, 'users');
-    const snapshot = await getDocs(usersRef);
-    
-    const users = [];
-    snapshot.forEach(doc => {
-      const userData = doc.data();
-      const userName = userData.displayName || userData.email?.split('@')[0] || '';
-      
-      if (userName.toLowerCase().includes(searchTerm.toLowerCase())) {
-        users.push({ id: doc.id, ...userData });
-      }
-    });
+    const upload = await uploadToCloudinary(file);
+    if (!upload.success) throw new Error(upload.error);
 
-    return { success: true, users };
-  } catch (error) {
-    console.error('Error searching users:', error);
-    return { success: false, error: error.message, users: [] };
-  }
-};
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-// Send Friend Request
-export const sendFriendRequest = async (toUserId) => {
-  try {
-    const user = auth.currentUser;
-    if (!user) throw new Error('User not authenticated');
-
-    await addDoc(collection(db, 'friendRequests'), {
-      fromUserId: user.uid,
-      toUserId,
-      status: 'pending',
-      timestamp: serverTimestamp()
+    await addDoc(collection(db, "stories"), {
+      userId: user.uid,
+      userName: user.displayName || user.email.split("@")[0],
+      userPhotoURL: user.photoURL || null,
+      mediaUrl: upload.url,
+      mediaType: upload.type,
+      timestamp: serverTimestamp(),
+      expiresAt: expiresAt.toISOString(),
     });
 
     return { success: true };
   } catch (error) {
-    console.error('Error sending friend request:', error);
+    console.error("Error creating story:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+// === GET STORIES ===
+export const getStories = async () => {
+  try {
+    const snapshot = await getDocs(query(collection(db, "stories"), orderBy("timestamp", "desc")));
+    const now = new Date();
+    const stories = snapshot.docs
+      .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+      .filter(story => new Date(story.expiresAt) > now);
+
+    return { success: true, stories };
+  } catch (error) {
+    console.error("Error fetching stories:", error);
+    return { success: false, stories: [], error: error.message };
+  }
+};
+
+// === DELETE STORY ===
+export const deleteStory = async storyId => {
+  try {
+    await deleteDoc(doc(db, "stories", storyId));
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting story:", error);
     return { success: false, error: error.message };
   }
 };

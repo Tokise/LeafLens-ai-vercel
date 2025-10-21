@@ -188,7 +188,7 @@ html, body {
 
 .story-image img {
   width: 100%;
-  height: 150%;
+  height: 130%;
   object-fit: cover;
 }
 
@@ -231,11 +231,90 @@ html, body {
   left: 0;
   right: 0;
   padding: 12px 8px;
-  background: var(--card-bg);
   text-align: center;
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-color);
+}
+
+.create-story-modal {
+  width: 420px;
+  max-width: 90%;
+  background: var(--background-secondary);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.story-upload-body {
+  width: 100%;
+}
+
+.story-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.story-avatar img,
+.story-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.story-upload-box {
+  width: 100%;
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 30px 10px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.story-upload-prompt {
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.story-preview {
+  max-height: 300px;
+  margin-top: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.story-preview-img,
+.story-preview-video {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.story-post-btn {
+  width: 100%;
+  margin-top: 15px;
+}
+
+.close-btn{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--primary-color);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  padding: 6px 10px;
+  font-size: 1rem;
+  transition: background 0.2s ease;
 }
 
 /* ======== FLOATING CHATBOT ======== */
@@ -527,7 +606,7 @@ html, body {
 }
 
 .media-preview {
-  display: grid;
+  display: flex;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 8px;
   margin-top: 12px;
@@ -569,6 +648,79 @@ html, body {
   background: rgba(0, 0, 0, 0.9);
 }
 
+/* Keep your base CSS here... below are added/fixed parts */
+
+
+.story-overlay {
+  position: absolute;
+  bottom: 8px;
+  left: 0px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  top: -110px;
+  color: white;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 8px;
+  
+}
+
+.story-avatar-overlay {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(13, 155, 32, 0.8);
+
+}
+
+
+
+/* Story Viewer - not fullscreen */
+.story-viewer {
+  background: var(--card-bg);
+  padding: 16px;
+  border-radius: 12px;
+  max-width: 400px;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.story-viewer img,
+.story-viewer video {
+  max-width: 100%;
+  max-height: 500px;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+/* Desktop search dropdown */
+.search-dropdown {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 250px;
+  background: var(--card-bg);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  padding: 8px;
+}
+
+.search-result-item {
+  padding: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.search-result-item:hover {
+  background: var(--hover-bg);
+}
+
 
 /* Small screen modal adjustments */
 @media (max-width: 500px) {
@@ -607,8 +759,15 @@ html, body {
 
   .posts-feed {
     padding: 2px 1px 15px;
+ 
   }
 
+  .story-overlay{
+    top: -90px;
+  }
+  .posts-feed > :last-child{
+    margin-bottom: 100px;
+  }
   .post-card {
     margin-bottom: 8px;
   }

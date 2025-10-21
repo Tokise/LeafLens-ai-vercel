@@ -19,6 +19,7 @@ import { weatherService } from './utils/weatherService';
 import { pushNotificationService } from './utils/pushNotificationService';
 import { notificationService } from './utils/notificationService';
 import Search from './pages/Search/Search';
+import Profile from "./pages/Profile";
 
 
 function App() {
@@ -84,11 +85,12 @@ function App() {
         <Toaster position="top-center" />
         {user ? (
           <>
-            <Navbar />
+           
             <main className="app-main">
               <Routes>
                 <Route path="/" element={<Community />} />
                 <Route path="/search" element={<Search />} />
+                 <Route path="/profile/:userId" element={<Profile />} />
                 <Route path="/messages" element={<Messages />} />
                 <Route path="/chat/:userId" element={<Chat />} />
                 <Route path="/scan" element={<Scan />} />

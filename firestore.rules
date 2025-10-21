@@ -1,0 +1,145 @@
+// Firestore Security Rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Users collection - for user profiles and data
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update, delete: if isOwner(userId);
+      
+      // User's favorites subcollection
+      match /favorites/{favoriteId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // User's monitored plants subcollection
+      match /monitoredPlants/{plantId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // User's chatbot messages subcollection
+      match /messages/{messageId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // User's weather notifications subcollection
+      match /weather_notifications/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
+    // Favorites (root level - keeping for backward compatibility)
+    match /favorites/{document} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Community Posts
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments'])
+      );
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Messages (direct messages between users)
+    match /messages/{messageId} {
+      allow read: if isSignedIn() && (
+        request.auth.uid == resource.data.senderId || 
+        request.auth.uid == resource.data.receiverId ||
+        request.auth.uid in resource.data.participants
+      );
+      allow create: if isSignedIn() && 
+        request.resource.data.senderId == request.auth.uid &&
+        request.auth.uid in request.resource.data.participants;
+      allow update: if isSignedIn() && (
+        request.auth.uid == resource.data.senderId || 
+        request.auth.uid == resource.data.receiverId
+      );
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
+    }
+    
+    // Conversations (chat list metadata)
+    match /conversations/{conversationId} {
+      allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
+      allow update: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow delete: if isSignedIn() && request.auth.uid in resource.data.participants;
+    }
+    
+    // Chat metadata (alternative structure)
+    match /chats/{chatId} {
+      allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow write: if isSignedIn() && request.auth.uid in request.resource.data.participants;
+      
+      // Chat messages subcollection
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow write: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+      }
+    }
+    
+    // Friends/Connections
+    match /friends/{friendshipId} {
+      allow read: if isSignedIn() && (
+        request.auth.uid == resource.data.userId || 
+        request.auth.uid == resource.data.friendId
+      );
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if isSignedIn() && (
+        request.auth.uid == resource.data.userId || 
+        request.auth.uid == resource.data.friendId
+      );
+    }
+    
+    // Friend Requests
+    match /friendRequests/{requestId} {
+      allow read: if isSignedIn() && (
+        request.auth.uid == resource.data.fromUserId || 
+        request.auth.uid == resource.data.toUserId
+      );
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.fromUserId;
+      allow update, delete: if isSignedIn() && (
+        request.auth.uid == resource.data.fromUserId || 
+        request.auth.uid == resource.data.toUserId
+      );
+    }
+    
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+    }
+    
+    // Comments on posts
+    match /comments/{commentId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Stories (24-hour stories like Facebook)
+match /stories/{storyId} {
+  allow read: if isSignedIn();
+  allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+  allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+		}
+
+  }
+}

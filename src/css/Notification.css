@@ -1,10 +1,10 @@
 .notifications-container {
   padding: 20px;
-  min-height: calc(100vh - 75px); /* Account for bottom navbar */
+  min-height: calc(100vh - 75px);
   width: 100%;
   overflow-y: auto;
-  height: calc(100vh - 75px); /* Account for bottom navbar */
-  padding-bottom: 85px; /* Extra padding to ensure content is not hidden behind navbar */
+  height: calc(100vh - 75px);
+  padding-bottom: 85px;
 }
 
 .notifications-header {
@@ -126,4 +126,75 @@
   background-color: var(--card-background);
   border-radius: 8px;
   font-style: italic;
+}
+
+/* === 🔥 ENHANCEMENTS: Friend Request Notifications === */
+.friend-requests-section {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.friend-requests-title {
+  font-size: 1.2rem;
+  color: var(--accent-color);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.friend-request-item {
+  background: var(--card-background);
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.friend-request-item.unread {
+  border-left: 3px solid var(--accent-color);
+}
+
+.friend-request-item:hover {
+  transform: translateY(-2px);
+}
+
+.friend-request-info p {
+  color: var(--text-secondary);
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+}
+
+.friend-request-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.accept-btn, .reject-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.accept-btn {
+  background: var(--accent-color);
+  color: white;
+}
+
+.accept-btn:hover {
+  background: #28b463;
+}
+
+.reject-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+.reject-btn:hover {
+  background: #c0392b;
 }

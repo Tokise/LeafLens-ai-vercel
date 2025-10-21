@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import Header from '../../components/header/Header';
 import { useTheme } from '../../context/ThemeContext';
 import '../../css/Monitoring.css';
+import Navbar from '../../components/navbar/Navbar';
 
 const Monitoring = () => {
   const { theme } = useTheme();
@@ -84,7 +85,7 @@ const Monitoring = () => {
   return (
     <div className="monitoring-container">
       <Header />
-      
+      <Navbar />
       <div className="monitoring-content">
         <div className="monitoring-header">
           <h1>Monitor</h1>

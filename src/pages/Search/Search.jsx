@@ -1,126 +1,151 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faUserPlus, faUser } from '@fortawesome/free-solid-svg-icons';
-import { searchUsers, sendFriendRequest } from '../../firebase/community';
-import { toast } from 'react-hot-toast';
-import Header from '../../components/header/Header';
-import '../../css/Search.css';
+import { useState, useEffect } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
+import "../../css/Search.css";
 
 const Search = () => {
+  const db = getFirestore();
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get('q') || '');
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('users');
 
+  const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth > 730);
+
+  // Detect screen size for responsive dropdown
   useEffect(() => {
-    if (query) {
-      handleSearch();
-    }
-  }, [query]);
+    const handleResize = () => setIsDesktop(window.innerWidth > 730);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleSearch = async () => {
-    setLoading(true);
-    const result = await searchUsers(query);
-    
-    if (result.success) {
-      setResults(result.users);
-    }
-    setLoading(false);
-  };
+  if (!searchTerm.trim()) {
+    setUsers([]);
+    setShowDropdown(false);
+    return;
+  }
 
-  const handleAddFriend = async (userId) => {
-    const result = await sendFriendRequest(userId);
-    
-    if (result.success) {
-      toast.success('Friend request sent!');
+  setLoading(true);
+  try {
+    const usersRef = collection(db, "users");
+    const snapshot = await getDocs(usersRef);
+
+    const filtered = snapshot.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .filter(
+        (u) =>
+          (u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            u.email?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+          u.id !== currentUser?.uid
+      );
+
+    setUsers(filtered);
+    setShowDropdown(true);
+  } catch (err) {
+    console.error("Search error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  // Debounced search
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      const delay = setTimeout(handleSearch, 400);
+      return () => clearTimeout(delay);
     } else {
-      toast.error('Failed to send friend request');
+      setUsers([]);
+      setShowDropdown(false);
     }
-  };
+  }, [searchTerm]);
 
   return (
     <div className="search-page">
-      <Header />
-      
-      <div className="search-container">
-        <div className="search-header">
-          <div className="search-input-wrapper">
-            <FontAwesomeIcon icon={faSearch} className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search users, posts, plants..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              autoFocus
-            />
+      <div className="search-header">
+        <div className={`search-input-wrapper ${isDesktop ? "desktop" : ""}`}>
+          <FontAwesomeIcon
+            icon={faArrowLeft}
+            onClick={() => navigate("/")}
+            className="search-icon back-icon"
+          />
+          <FontAwesomeIcon icon={faSearch} className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => isDesktop && setShowDropdown(true)}
+            onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+          />
+        </div>
+
+        {/* Desktop Dropdown */}
+        {isDesktop && showDropdown && (
+          <div className="search-dropdown">
+            {loading ? (
+              <p className="loading">Searching...</p>
+            ) : users.length > 0 ? (
+              users.map((user) => (
+                <div
+                  key={user.id}
+                  className="search-result-item"
+                  onClick={() => navigate(`/profile/${user.id}`)}
+                >
+                  <img
+                    src={user.photoURL || "/default-avatar.png"}
+                    alt={user.displayName}
+                    className="result-avatar"
+                  />
+                  <div className="result-info">
+                    <h4>{user.displayName || "Unnamed User"}</h4>
+                    <p>{user.email}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              searchTerm.length > 1 && <p className="no-results">No users found</p>
+            )}
           </div>
-        </div>
+        )}
+      </div>
 
-        <div className="search-tabs">
-          <button 
-            className={`tab ${activeTab === 'users' ? 'active' : ''}`}
-            onClick={() => setActiveTab('users')}
-          >
-            Users
-          </button>
-          <button 
-            className={`tab ${activeTab === 'posts' ? 'active' : ''}`}
-            onClick={() => setActiveTab('posts')}
-          >
-            Posts
-          </button>
-          <button 
-            className={`tab ${activeTab === 'plants' ? 'active' : ''}`}
-            onClick={() => setActiveTab('plants')}
-          >
-            Plants
-          </button>
-        </div>
-
+      {/* Mobile Results */}
+      {!isDesktop && (
         <div className="search-results">
           {loading ? (
-            <div className="loading-state">
-              <div className="spinner"></div>
-              <p>Searching...</p>
-            </div>
-          ) : results.length === 0 ? (
-            <div className="empty-state">
-              <FontAwesomeIcon icon={faSearch} className="empty-icon" />
-              <h3>No results found</h3>
-              <p>Try searching for something else</p>
-            </div>
-          ) : (
-            results.map((user) => (
-              <div key={user.id} className="user-result-card">
-                <div className="user-avatar">
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt={user.displayName} />
-                  ) : (
-                    <div className="avatar-placeholder">
-                      {(user.displayName || user.email)?.charAt(0) || 'U'}
-                    </div>
-                  )}
-                </div>
-                
+            <p className="loading">Searching...</p>
+          ) : users.length > 0 ? (
+            users.map((user) => (
+              <div
+                key={user.id}
+                className="user-card"
+                onClick={() => navigate(`/profile/${user.id}`)}
+              >
+                <img
+                  src={user.photoURL || "/default-avatar.png"}
+                  alt={user.displayName}
+                  className="user-avatar"
+                />
                 <div className="user-info">
-                  <h4>{user.displayName || user.email?.split('@')[0]}</h4>
-                  <p>{user.bio || 'Plant enthusiast'}</p>
+                  <h4>{user.displayName || "Unnamed User"}</h4>
+                  <p>{user.email}</p>
                 </div>
-
-                <button 
-                  className="add-friend-btn"
-                  onClick={() => handleAddFriend(user.id)}
-                >
-                  <FontAwesomeIcon icon={faUserPlus} />
-                </button>
               </div>
             ))
+          ) : (
+            searchTerm.length > 1 && <p className="no-results">No users found</p>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

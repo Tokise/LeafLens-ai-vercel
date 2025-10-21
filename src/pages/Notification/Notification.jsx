@@ -4,6 +4,23 @@ import { NotificationCategory } from '../../utils/types';
 import Header from '../../components/header/Header';
 import '../../css/Notification.css';
 
+// === 🔥 NEW FIREBASE IMPORTS FOR FRIEND REQUEST NOTIFICATIONS ===
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  updateDoc,
+  doc,
+  addDoc,
+  setDoc,
+  getFirestore,
+  serverTimestamp,
+} from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import React from "react";
+import Navbar from '../../components/navbar/Navbar';
+
 const Notification = () => {
   const [notifications, setNotifications] = useState([]);
   const [activeCategory, setActiveCategory] = useState('all');
@@ -52,6 +69,7 @@ const Notification = () => {
   return (
     <div className="notifications-container">
       <Header />
+      <Navbar />
       <div className="notifications-header">
         <h1>Notifications</h1>
         {notifications.length > 0 && (
@@ -106,6 +124,125 @@ const Notification = () => {
           ))
         )}
       </div>
+
+      {/* 🔥 Friend Request Notifications Section */}
+      <FriendRequestNotifications />
+    </div>
+  );
+};
+
+// === 🔥 ENHANCEMENT: Friend Request Notifications Component ===
+const db = getFirestore();
+const auth = getAuth();
+
+const FriendRequestNotifications = () => {
+  const [requests, setRequests] = useState([]);
+  const currentUser = auth.currentUser;
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", currentUser.uid),
+      where("type", "in", ["friend_request", "friend_accept"])
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const list = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setRequests(list.sort((a, b) => b.timestamp?.seconds - a.timestamp?.seconds));
+    });
+
+    return () => unsubscribe();
+  }, [currentUser]);
+
+  const acceptFriendRequest = async (notif) => {
+    try {
+      // 1️⃣ Add both users as friends
+      await addDoc(collection(db, "friends"), {
+        userId: currentUser.uid,
+        friendId: notif.fromUserId,
+        createdAt: serverTimestamp(),
+      });
+      await addDoc(collection(db, "friends"), {
+        userId: notif.fromUserId,
+        friendId: currentUser.uid,
+        createdAt: serverTimestamp(),
+      });
+
+      // 2️⃣ Send a notification back
+      await addDoc(collection(db, "notifications"), {
+        userId: notif.fromUserId,
+        type: "friend_accept",
+        title: `${currentUser.displayName || "A user"} accepted your friend request!`,
+        message: "You can now chat together.",
+        timestamp: serverTimestamp(),
+        read: false,
+      });
+
+      // 3️⃣ Create a chat between them
+      const chatId = [currentUser.uid, notif.fromUserId].sort().join("_");
+      await setDoc(doc(db, "conversations", chatId), {
+        participants: [currentUser.uid, notif.fromUserId],
+        createdAt: serverTimestamp(),
+        lastMessageAt: serverTimestamp(),
+      });
+
+      // 4️⃣ Mark notification handled
+      await updateDoc(doc(db, "notifications", notif.id), { handled: true });
+      alert("Friend request accepted!");
+    } catch (error) {
+      console.error("Error accepting friend request:", error);
+    }
+  };
+
+  const rejectFriendRequest = async (notif) => {
+    try {
+      await updateDoc(doc(db, "notifications", notif.id), { handled: true });
+      alert("Friend request rejected.");
+    } catch (error) {
+      console.error("Error rejecting friend request:", error);
+    }
+  };
+
+  if (!requests.length) return null;
+
+  return (
+    <div className="friend-requests-section">
+      <h2 className="friend-requests-title">Friend Requests</h2>
+      {requests.map((notif) => (
+        <div key={notif.id} className={`friend-request-item ${notif.handled ? "read" : "unread"}`}>
+          <div className="friend-request-info">
+            <strong>{notif.title}</strong>
+            <p>{notif.message}</p>
+          </div>
+          {!notif.handled && notif.type === "friend_request" && (
+            <div className="friend-request-actions">
+              <button
+                className="accept-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  acceptFriendRequest(notif);
+                }}
+              >
+                Accept
+              </button>
+              <button
+                className="reject-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  rejectFriendRequest(notif);
+                }}
+              >
+                Reject
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 };
