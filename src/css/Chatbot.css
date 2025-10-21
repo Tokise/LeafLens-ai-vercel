@@ -5,7 +5,6 @@
   color: var(--text-color);
   display: flex;
   flex-direction: column;
-  margin-top: -65px;
   overflow: hidden; /* Prevent body scroll */
   
 }
@@ -87,7 +86,7 @@ body.chatbot-mode .bottom-navbar {
   width: 100%;
   padding: 16px; /* Add right padding for scrollbar */
   gap: 12px;
-  margin-top: 230px; /* Match header height exactly, so messages start just below header */
+  margin-top: 30px; /* Match header height exactly, so messages start just below header */
   overflow-y: auto;
   height: calc(100vh - 60px); /* Account for header height */
   /* Hide scrollbar but keep functionality */
@@ -245,6 +244,7 @@ body.chatbot-mode .bottom-navbar {
   display: flex;
   flex-direction: column;
   gap: 10px;
+
   padding: 18px 18px 120px 0; /* Add right padding for scrollbar */
   overflow-y: auto;
   align-items: flex-start;
@@ -501,7 +501,7 @@ body.chatbot-mode .bottom-navbar {
     
   }
   .chatbot-app{
-    margin-top: -188px;
+    margin-top: 15px;
     height: 109vh;
   }
   
@@ -536,7 +536,7 @@ body.chatbot-mode .bottom-navbar {
 
 @media (max-width: 480px) {
   .chatbot-app{
-    margin-top: -80px;
+    margin-top: 10px;
     height: 93vh;
   }
   

@@ -1,20 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faSun,
-  faSeedling,
-  faTemperatureHigh,
-  faCalendar,
-  faEllipsisV,
-  faCheck,
-  faClock,
-  faEdit,
-  faTrash
-} from '@fortawesome/free-solid-svg-icons';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, query, where, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import app from '../../firebase/firebase';
+import { faTint, faSun, faSeedling, faTemperatureHigh, faCalendar, faPlus, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { getMonitoredPlants, updatePlantWatering, removePlantFromMonitoring } from '../../firebase/monitoring';
 import { toast } from 'react-hot-toast';
 import Header from '../../components/header/Header';
 import { useTheme } from '../../context/ThemeContext';
@@ -23,81 +11,40 @@ import '../../css/Monitoring.css';
 const Monitoring = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const user = auth.currentUser;
-
   const [plants, setPlants] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, needs-care, healthy
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
     loadPlants();
-  }, [user]);
+  }, []);
 
   const loadPlants = async () => {
-    try {
-      const plantsRef = collection(db, 'users', user.uid, 'monitoredPlants');
-      const q = query(plantsRef, orderBy('addedDate', 'desc'));
-      const snapshot = await getDocs(q);
-
-      const loadedPlants = [];
-      snapshot.forEach(doc => {
-        loadedPlants.push({ id: doc.id, ...doc.data() });
-      });
-
-      setPlants(loadedPlants);
-    } catch (error) {
-      console.error('Error loading plants:', error);
-      toast.error('Failed to load plants');
+    const result = await getMonitoredPlants();
+    if (result.success) {
+      setPlants(result.plants);
     }
     setLoading(false);
   };
 
   const markAsWatered = async (plantId) => {
-    try {
-      const plantRef = doc(db, 'users', user.uid, 'monitoredPlants', plantId);
-      await updateDoc(plantRef, {
-        lastWatered: new Date(),
-        nextWatering: calculateNextWatering(new Date(), 3)
-      });
-
-      setPlants(prev => prev.map(plant =>
-        plant.id === plantId
-          ? {
-              ...plant,
-              lastWatered: new Date(),
-              nextWatering: calculateNextWatering(new Date(), 3)
-            }
-          : plant
-      ));
-
+    const result = await updatePlantWatering(plantId);
+    if (result.success) {
       toast.success('Plant watered!');
-    } catch (error) {
-      console.error('Error updating plant:', error);
+      loadPlants();
+    } else {
       toast.error('Failed to update plant');
     }
   };
 
-  const calculateNextWatering = (lastDate, daysInterval) => {
-    const next = new Date(lastDate);
-    next.setDate(next.getDate() + daysInterval);
-    return next;
-  };
-
   const deletePlant = async (plantId) => {
-    if (!window.confirm('Are you sure you want to remove this plant from monitoring?')) return;
-
-    try {
-      await deleteDoc(doc(db, 'users', user.uid, 'monitoredPlants', plantId));
-      setPlants(prev => prev.filter(plant => plant.id !== plantId));
+    if (!window.confirm('Remove this plant from monitoring?')) return;
+    
+    const result = await removePlantFromMonitoring(plantId);
+    if (result.success) {
       toast.success('Plant removed from monitoring');
-    } catch (error) {
-      console.error('Error deleting plant:', error);
+      loadPlants();
+    } else {
       toast.error('Failed to remove plant');
     }
   };
@@ -140,14 +87,9 @@ const Monitoring = () => {
       
       <div className="monitoring-content">
         <div className="monitoring-header">
-          <h1>My Plants</h1>
-          <button className="add-plant-btn" onClick={() => navigate('/add-plant')}>
-            <FontAwesomeIcon icon={faPlus} />
-            <span>Add Plant</span>
-          </button>
+          <h1>Monitor</h1>
         </div>
 
-        {/* Filter Tabs */}
         <div className="filter-tabs">
           <button
             className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
@@ -169,7 +111,6 @@ const Monitoring = () => {
           </button>
         </div>
 
-        {/* Plants Grid */}
         {loading ? (
           <div className="loading-state">
             <div className="spinner"></div>
@@ -192,7 +133,6 @@ const Monitoring = () => {
 
               return (
                 <div key={plant.id} className={`plant-card status-${status}`}>
-                  {/* Plant Image */}
                   <div className="plant-card-image">
                     {plant.image ? (
                       <img src={plant.image} alt={plant.name} />
@@ -209,20 +149,13 @@ const Monitoring = () => {
                     </div>
                   </div>
 
-                  {/* Plant Info */}
                   <div className="plant-card-content">
                     <div className="plant-card-header">
                       <h3>{plant.name}</h3>
-                      <button className="options-btn" onClick={() => {
-                        // Handle options menu
-                      }}>
-                        <FontAwesomeIcon icon={faEllipsisV} />
-                      </button>
                     </div>
 
                     <p className="scientific-name">{plant.scientificName}</p>
 
-                    {/* Watering Info */}
                     <div className="watering-info">
                       <div className="info-row">
                         <FontAwesomeIcon icon={faTint} className="icon water" />
@@ -246,7 +179,6 @@ const Monitoring = () => {
                       </div>
                     </div>
 
-                    {/* Care Stats */}
                     <div className="care-stats">
                       <div className="stat">
                         <FontAwesomeIcon icon={faSun} />
@@ -258,7 +190,6 @@ const Monitoring = () => {
                       </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="plant-actions">
                       <button
                         className="action-btn primary"
@@ -266,12 +197,6 @@ const Monitoring = () => {
                       >
                         <FontAwesomeIcon icon={faTint} />
                         <span>Water Now</span>
-                      </button>
-                      <button
-                        className="action-btn secondary"
-                        onClick={() => navigate(`/edit-plant/${plant.id}`)}
-                      >
-                        <FontAwesomeIcon icon={faEdit} />
                       </button>
                       <button
                         className="action-btn danger"

@@ -1,199 +1,212 @@
+/* ============= HEADER.CSS - LOGO, SPACING & NAVIGATION ============= */
 .page-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 1rem;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--header-bg);
+  height: auto;
+  width: 100%;
+  box-shadow: 0 2px 8px var(--shadow-color);
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
-  background-color: var(--header-bg);
-  box-shadow: 0 2px 8px var(--shadow-color);
+  margin: 0;
+  gap: 24px;
 }
 
-/* ------------------------- */
-/* Left Section: Logo + Search */
-/* ------------------------- */
 .left-section {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 16px;
+  flex-shrink: 0;
 }
 
 .logo-group {
   display: flex;
   align-items: center;
-  cursor: pointer;
-}
-
-.logo-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  overflow: hidden;
-  display: none;
-  align-items: center;
   justify-content: center;
-  background-color: transparent;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  padding: 0;
+  margin: 0;
 }
 
-.logo-icon img {
-  width: 100%;
+.logo-group:hover {
+  opacity: 0.7;
+}
+
+.logo-name {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+  padding: 0;
+  margin: 0;
+}
+
+.logo-name img {
   height: 100%;
-  object-fit: cover;
-}
-
-.logo-text {
-  height: 2rem;
   width: auto;
-  display: flex;
-  align-items: center;
-  margin-left: -20px;
+  object-fit: contain;
+
 }
 
-.logo-text img {
-  height: 500%;
-  width: auto;
-}
-
-/* ------------------------- */
-/* Search beside logo */
-/* ------------------------- */
-.search-container {
-  display: flex;
-  align-items: center;
-  position: relative;
-  margin-left: -20px;
-}
-
-/* Icon button */
-.search-toggle {
-  background: var(--card-bg);
-  border: none;
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
+/* Desktop Navigation Links */
+.desktop-nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  gap: 40px;
+  flex: 1;
+  max-width: 600px;
+  margin: 0 auto;
+  margin-left: 115px;
 }
 
-.search-toggle:hover {
-  background: var(--hover-bg);
-  transform: scale(1.05);
-}
-
-.search-toggle svg {
-  color: var(--text-color);
-  font-size: 1rem;
-}
-
-/* Inline expanding input */
-.search-bar-inline {
-  opacity: 0;
-  width: 0;
-  margin-left: 0;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.search-bar-inline.expanded {
-  width: 240px;
-  opacity: 1;
-  margin-left: 0.5rem;
-  animation: fadeExpandRight 0.3s ease forwards;
-}
-
-.search-bar-inline input {
-  width: 100%;
-  padding: 0.45rem 0.8rem;
-  border-radius: 20px;
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: none;
   border: none;
-  outline: none;
-  background-color: var(--card-bg);
   color: var(--text-color);
-  font-size: 0.9rem;
-  box-shadow: 0 2px 5px var(--shadow-color);
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+
+
 }
 
-/* Fade + slide animation */
-@keyframes fadeExpandRight {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.nav-link svg {
+  font-size: 18px;
 }
 
-/* ------------------------- */
-/* Header Actions (Bell, Cog) */
-/* ------------------------- */
+.nav-link.active {
+  background: none;
+  color: var(--primary-color);
+}
+
+
+
 .header-actions {
   display: flex;
-  gap: 12px;
   align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
 }
 
-.notification-icon,
-.settings-icon {
-  width: 40px;
-  height: 40px;
+.search-btn,
+.notification-btn,
+.settings-btn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 8px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  background: var(--card-bg);
+  transition: all 0.3s ease;
   position: relative;
-  transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.notification-icon:hover,
-.settings-icon:hover {
-  transform: scale(1.05);
+.search-btn:hover,
+.notification-btn:hover,
+.settings-btn:hover {
   background: var(--hover-bg);
-}
-
-.notification-icon svg,
-.settings-icon svg {
-  font-size: 1.2rem;
-  color: var(--text-color);
+  transform: scale(1.05);
 }
 
 .notification-badge {
   position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 12px;
-  height: 12px;
-  background-color: #ff4444;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: var(--primary-color);
   border-radius: 50%;
-  border: 2px solid var(--card-bg);
+  border: 2px solid var(--header-bg);
 }
 
-/* ------------------------- */
-/* Responsive */
-/* ------------------------- */
-@media (max-width: 769px) {
-  .logo-text {
+/* Tablet view */
+@media (max-width: 1024px) {
+  .desktop-nav {
+    gap: 4px;
+  }
+  
+  .nav-link {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  
+  .nav-link svg {
+    font-size: 16px;
+  }
+}
+
+/* Mobile responsiveness - Hide desktop nav, keep only actions */
+@media (max-width: 768px) {
+  .page-header {
+    padding: 8px 12px;
+    margin-top: 0;
+    gap: 12px;
+  }
+
+  /* Hide desktop navigation on mobile */
+  .desktop-nav {
     display: none;
   }
 
-  .logo-icon {
-    width: 2rem;
-    height: 2rem;
-    margin-left: -8px;
-    display: flex;
+  .logo-name {
+    height: 42px;
   }
-  .search-container {
-    margin-left: 10px;
+
+  .left-section {
+    gap: 12px;
+    flex: 1;
   }
-  .search-bar-inline.expanded {
-    width: 150px;
+
+  .header-actions {
+    gap: 12px;
+  }
+
+  .search-btn,
+  .notification-btn,
+  .settings-btn {
+    font-size: 10px;
+    padding: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    padding: 10px 10px;
+    margin-top: 0;
+  }
+
+  .logo-name {
+    height: 45px;
+    margin-left: -30px;
+  }
+
+  .left-section {
+    gap: 8px;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .search-btn,
+  .notification-btn,
+  .settings-btn {
+    font-size: 20px;
+    padding: 6px;
   }
 }

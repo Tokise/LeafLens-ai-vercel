@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faTimes, 
-  faLeaf, 
-  faBook, 
-  faComments, 
+import {
+  faTimes,
+  faLeaf,
+  faBook,
+  faComments,
   faHeart,
   faChevronDown,
   faChevronUp,
@@ -83,9 +83,8 @@ const Favorites = () => {
 
   return (
     <div className="favorites-container">
-      <Header />
+     <Header />
       <h1>Favorites</h1>
-      
       {error && (
         <div className="error-message">
           {error}
@@ -103,15 +102,15 @@ const Favorites = () => {
           </div>
         ) : (
           favorites.map((favorite) => (
-            <motion.div 
-              key={favorite.id} 
+            <motion.div
+              key={favorite.id}
               className="plant-item"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: favorites.indexOf(favorite) * 0.1 }}
             >
-              <div 
-                className="plant-main" 
+              <div
+                className="plant-main"
                 onClick={() => toggleCard(favorite.id)}
                 style={{
                   backgroundImage: `url(${favorite.image})`,
@@ -121,7 +120,7 @@ const Favorites = () => {
                 }}
               >
                 <div className="plant-overlay"></div>
-                
+
                 <div className="plant-info">
                   <h3 className="plant-name">{favorite.name}</h3>
                   <p className="scientific-name">{favorite.scientificName}</p>
@@ -129,7 +128,7 @@ const Favorites = () => {
                 </div>
 
                 <div className="plant-actions-main">
-                  <button 
+                  <button
                     className="action-btn primary"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -139,7 +138,7 @@ const Favorites = () => {
                   >
                     <FontAwesomeIcon icon={faEye} />
                   </button>
-                  <button 
+                  <button
                     className="action-btn secondary"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -149,7 +148,7 @@ const Favorites = () => {
                   >
                     <FontAwesomeIcon icon={faMessage} />
                   </button>
-                  <button 
+                  <button
                     className="action-btn danger"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -160,17 +159,17 @@ const Favorites = () => {
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                   <button className="expand-btn">
-                    <FontAwesomeIcon 
-                      icon={expandedCards[favorite.id] ? faChevronUp : faChevronDown} 
+                    <FontAwesomeIcon
+                      icon={expandedCards[favorite.id] ? faChevronUp : faChevronDown}
                     />
                   </button>
                 </div>
               </div>
 
-              <motion.div 
+              <motion.div
                 className="plant-details-expanded"
                 initial={false}
-                animate={{ 
+                animate={{
                   height: expandedCards[favorite.id] ? 'auto' : 0,
                   opacity: expandedCards[favorite.id] ? 1 : 0
                 }}
@@ -247,13 +246,13 @@ const Favorites = () => {
       </div>
 
       {selectedPlant && (
-        <motion.div 
+        <motion.div
           className="modal-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           onClick={() => setSelectedPlant(null)}
         >
-          <motion.div 
+          <motion.div
             className="modal-content"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -262,7 +261,7 @@ const Favorites = () => {
             {/* Modal Header */}
             <div className="modal-header">
               <h2 className="plant-name">{selectedPlant.name}</h2>
-              <button 
+              <button
                 className="modal-close"
                 onClick={() => setSelectedPlant(null)}
               >
@@ -272,8 +271,8 @@ const Favorites = () => {
 
             {/* Plant Image */}
             <div className="plant-image-container">
-              <img 
-                src={selectedPlant.image} 
+              <img
+                src={selectedPlant.image}
                 alt={selectedPlant.name}
                 className="plant-image"
               />
@@ -354,7 +353,7 @@ const Favorites = () => {
 
             {/* Action Buttons */}
             <div className="modal-actions">
-              <button 
+              <button
                 className="favorite-button"
                 onClick={() => {
                   setSelectedPlant(null);
@@ -363,6 +362,42 @@ const Favorites = () => {
               >
                 <FontAwesomeIcon icon={faMessage} />
                 Ask Plant Expert About This Plant
+              </button>
+
+              <button
+                className="monitoring-button"
+                onClick={async () => {
+                  const result = await addPlantToMonitoring({
+                    ...selectedPlant,
+                    wateringInterval: 3
+                  });
+
+                  if (result.success) {
+                    toast.success('Added to monitoring!');
+                    navigate('/monitoring');
+                  } else {
+                    toast.error('Failed to add to monitoring');
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  marginTop: '12px',
+                  background: 'transparent',
+                  border: '2px solid var(--primary-color)',
+                  color: 'var(--primary-color)',
+                  padding: '16px 24px',
+                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                <FontAwesomeIcon icon={faClipboardList} />
+                Track This Plant
               </button>
             </div>
           </motion.div>

@@ -1,10 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../firebase/auth';
 import { updateProfile } from 'firebase/auth';
 import { useTheme } from '../../context/ThemeContext';
 import Header from '../../components/header/Header';
 import { requestNotificationPermission } from '../../firebase/firebase';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faUser, 
+  faBell, 
+  faMoon, 
+  faLock,
+  faShieldAlt,
+  faQuestionCircle,
+  faInfoCircle,
+  faSignOutAlt,
+  faChevronRight
+} from '@fortawesome/free-solid-svg-icons';
+import { toast } from 'react-hot-toast';
 import '../../css/Settings.css';
 
 const Settings = () => {
@@ -12,7 +25,10 @@ const Settings = () => {
   const { theme, setTheme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [displayName, setDisplayName] = useState(auth.currentUser?.displayName || '');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(() => localStorage.getItem('notificationsEnabled') === 'true');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    () => localStorage.getItem('notificationsEnabled') === 'true'
+  );
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const user = auth.currentUser;
 
   const handleProfileUpdate = async () => {
@@ -21,10 +37,11 @@ const Settings = () => {
       await updateProfile(auth.currentUser, {
         displayName: displayName
       });
-      // Show success toast or message
+      toast.success('Profile updated!');
+      setIsEditingProfile(false);
     } catch (error) {
       console.error('Error updating profile:', error);
-      // Show error toast or message
+      toast.error('Failed to update profile');
     }
     setLoading(false);
   };
@@ -59,75 +76,139 @@ const Settings = () => {
     }
   };
 
-  
-
   return (
     <div className="settings-page">
-    
       <Header />
-      {/* Profile Settings */}
-      <div className="settings-section">
-        <h2>Profile Settings</h2>
-        <div className="input-group">
-          <label>Display Name</label>
-          <input
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Enter display name"
-          />
+      
+      <div className="settings-content">
+        <div className="profile-section">
+          <div className="profile-avatar-large">
+            {user?.photoURL ? (
+              <img src={user.photoURL} alt="Profile" />
+            ) : (
+              <div className="avatar-placeholder-large">
+                {user?.email?.charAt(0).toUpperCase() || 'U'}
+              </div>
+            )}
+          </div>
+          <h2>{user?.displayName || user?.email?.split('@')[0] || 'Plant Lover'}</h2>
+          <p className="profile-email">{user?.email}</p>
+          
+          <div className="profile-stats">
+            <div className="stat-item">
+              <span className="stat-value">3</span>
+              <span className="stat-label">Plants</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-value">4</span>
+              <span className="stat-label">Posts</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-value">127</span>
+              <span className="stat-label">Followers</span>
+            </div>
+          </div>
         </div>
-        <div className="input-group">
-          <label>Email</label>
-          <input
-            type="email"
-            value={user?.email || ''}
-            disabled
-            className="disabled"
-          />
-        </div>
-        <button 
-          className="update-button" 
-          onClick={handleProfileUpdate}
-          disabled={loading}
-        >
-          {loading ? 'Updating...' : 'Update Profile'}
-        </button>
-      </div>
 
-      {/* Preferences */}
-      <div className="settings-section">
-        <h2>Preferences</h2>
-        <div className="toggle-group">
-          <label>Enable push notifications</label>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={notificationsEnabled}
-              onChange={(e) => handleNotificationToggle(e.target.checked)}
-            />
-            <span className="slider"></span>
-          </label>
-        </div>
-        
-        <div className="toggle-group">
-          <label>Dark mode</label>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={theme === 'dark'}
-              onChange={(e) => setTheme(e.target.checked ? 'dark' : 'light')}
-            />
-            <span className="slider"></span>
-          </label>
-        </div>
-      </div>
+        <div className="settings-section">
+          <h3 className="section-title">Account Settings</h3>
+          
+          <div className="settings-item" onClick={() => setIsEditingProfile(true)}>
+            <div className="item-left">
+              <FontAwesomeIcon icon={faUser} className="item-icon" />
+              <span>Edit Profile</span>
+            </div>
+            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
+          </div>
 
-      {/* Logout Button */}
-      <div className="settings-section">
-        <button className="logout-button" onClick={handleLogout}>
-          Logout
-        </button>
+          <div className="settings-item">
+            <div className="item-left">
+              <FontAwesomeIcon icon={faLock} className="item-icon" />
+              <span>Change Password</span>
+            </div>
+            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h3 className="section-title">Preferences</h3>
+          
+          <div className="settings-item toggle-item">
+            <div className="item-left">
+              <FontAwesomeIcon icon={faBell} className="item-icon" />
+              <span>Push Notifications</span>
+            </div>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={notificationsEnabled}
+                onChange={(e) => handleNotificationToggle(e.target.checked)}
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div className="settings-item toggle-item">
+            <div className="item-left">
+              <FontAwesomeIcon icon={faMoon} className="item-icon" />
+              <span>Dark Mode</span>
+            </div>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={theme === 'dark'}
+                onChange={(e) => setTheme(e.target.checked ? 'dark' : 'light')}
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h3 className="section-title">Privacy & Security</h3>
+          
+          <div className="settings-item">
+            <div className="item-left">
+              <FontAwesomeIcon icon={faShieldAlt} className="item-icon" />
+              <span>Privacy Settings</span>
+            </div>
+            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
+          </div>
+
+          <div className="settings-item">
+            <div className="item-left">
+              <FontAwesomeIcon icon={faUser} className="item-icon" />
+              <span>Blocked Users</span>
+            </div>
+            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h3 className="section-title">Help & Support</h3>
+          
+          <div className="settings-item">
+            <div className="item-left">
+              <FontAwesomeIcon icon={faQuestionCircle} className="item-icon" />
+              <span>Help Center</span>
+            </div>
+            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
+          </div>
+
+          <div className="settings-item">
+            <div className="item-left">
+              <FontAwesomeIcon icon={faInfoCircle} className="item-icon" />
+              <span>About LeafLens</span>
+            </div>
+            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <button className="logout-btn" onClick={handleLogout}>
+            <span>Log Out</span>
+          </button>
+        </div>
       </div>
     </div>
   );

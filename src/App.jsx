@@ -18,6 +18,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import { weatherService } from './utils/weatherService';
 import { pushNotificationService } from './utils/pushNotificationService';
 import { notificationService } from './utils/notificationService';
+import Search from './pages/Search/Search';
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -86,6 +88,7 @@ function App() {
             <main className="app-main">
               <Routes>
                 <Route path="/" element={<Community />} />
+                <Route path="/search" element={<Search />} />
                 <Route path="/messages" element={<Messages />} />
                 <Route path="/chat/:userId" element={<Chat />} />
                 <Route path="/scan" element={<Scan />} />

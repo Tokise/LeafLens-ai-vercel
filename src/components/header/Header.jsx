@@ -1,81 +1,84 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faCog, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faCog, faSearch, faHome, faEnvelope, faCamera, faChartLine, faHeart, faComment } from '@fortawesome/free-solid-svg-icons';
 import { useState, useRef, useEffect } from 'react';
 import { auth } from '../../firebase/auth';
 import './Header.css';
-import NoNameLogo from '../../assets/images/logo-no-name.PNG';
 import LogoName from '../../assets/images/LeafLens.png';
 
 const Header = () => {
   const navigate = useNavigate();
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [query, setQuery] = useState('');
-  const searchRef = useRef(null);
-  const user = auth.currentUser;
+  const location = useLocation();
 
-  const toggleSearch = () => setIsExpanded((prev) => !prev);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (query.trim()) {
-      navigate(`/search?q=${encodeURIComponent(query.trim())}`);
-      setIsExpanded(false);
-    }
+  const handleSearch = () => {
+    navigate('/search');
   };
 
-  // Collapse search when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setIsExpanded(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  // Check if current route is active
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
 
   return (
     <header className="page-header">
       <div className="left-section">
         <div className="logo-group" onClick={() => navigate('/')}>
-          <div className="logo-icon">
-            <img src={NoNameLogo} alt="LeafLens Logo" className="logo" />
-          </div>
-          <div className="logo-text">
-            <img src={LogoName} alt="LeafLens Name Logo" className="logo-name" />
-          </div>
-        </div>
-
-        {/* 🔍 Search beside logo */}
-        <div className="search-container" ref={searchRef}>
-          <button className="search-toggle" onClick={toggleSearch}>
-            <FontAwesomeIcon icon={faSearch} />
-          </button>
-
-          <form
-            className={`search-bar-inline ${isExpanded ? 'expanded' : ''}`}
-            onSubmit={handleSearch}
-          >
-            <input
-              type="text"
-              placeholder="Search for friends, groups, posts..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              autoFocus={isExpanded}
-            />
-          </form>
+          <div className="logo-name">
+            <img src={LogoName} alt="LeafLens"  />
+          </div> 
         </div>
       </div>
 
+      {/* Desktop Navigation Links */}
+      <nav className="desktop-nav">
+        <button 
+          className={`nav-link ${isActive('/') ? 'active' : ''}`}
+          onClick={() => navigate('/')}
+        >
+          <FontAwesomeIcon icon={faHome} />
+      
+        </button>
+        <button 
+          className={`nav-link ${isActive('/messages') ? 'active' : ''}`}
+          onClick={() => navigate('/messages')}
+        >
+          <FontAwesomeIcon icon={faComment} />
+      
+        </button>
+        <button 
+          className={`nav-link ${isActive('/scan') ? 'active' : ''}`}
+          onClick={() => navigate('/scan')}
+        >
+          <FontAwesomeIcon icon={faCamera} />
+    
+        </button>
+        <button 
+          className={`nav-link ${isActive('/monitoring') ? 'active' : ''}`}
+          onClick={() => navigate('/monitoring')}
+        >
+          <FontAwesomeIcon icon={faChartLine} />
+        
+        </button>
+        <button 
+          className={`nav-link ${isActive('/favorites') ? 'active' : ''}`}
+          onClick={() => navigate('/favorites')}
+        >
+          <FontAwesomeIcon icon={faHeart} />
+     
+        </button>
+      </nav>
+
       <div className="header-actions">
-        <div className="notification-icon" onClick={() => navigate('/notifications')}>
+        <button className="search-btn" onClick={handleSearch} aria-label="Search">
+          <FontAwesomeIcon icon={faSearch} />
+        </button>
+        <button className="notification-btn" onClick={() => navigate('/notifications')} aria-label="Notifications">
           <FontAwesomeIcon icon={faBell} />
           <span className="notification-badge"></span>
-        </div>
-        <div className="settings-icon" onClick={() => navigate('/settings')}>
+        </button>
+        <button className="settings-btn" onClick={() => navigate('/settings')} aria-label="Settings">
           <FontAwesomeIcon icon={faCog} />
-        </div>
+        </button>
       </div>
     </header>
   );

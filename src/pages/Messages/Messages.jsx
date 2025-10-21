@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faSearch,
-  faEllipsisV,
-  faCircle
-} from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faEllipsisV, faCircle } from '@fortawesome/free-solid-svg-icons';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { getFirestore, collection, query, where, onSnapshot, orderBy, getDocs, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import app from '../../firebase/firebase';
 import { useTheme } from '../../context/ThemeContext';
 import Header from '../../components/header/Header';
@@ -34,6 +30,18 @@ const Messages = () => {
 
   const loadConversations = async () => {
     try {
+      // First, get all users to create sample conversations
+      const usersRef = collection(db, 'users');
+      const usersSnapshot = await getDocs(usersRef);
+      const allUsers = [];
+      
+      usersSnapshot.forEach(doc => {
+        if (doc.id !== user.uid) {
+          allUsers.push({ id: doc.id, ...doc.data() });
+        }
+      });
+
+      // Listen to conversations
       const conversationsRef = collection(db, 'conversations');
       const q = query(
         conversationsRef,
@@ -41,13 +49,33 @@ const Messages = () => {
         orderBy('lastMessageTime', 'desc')
       );
 
-      // Real-time listener
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const convos = [];
         snapshot.forEach(doc => {
-          convos.push({ id: doc.id, ...doc.data() });
+          const data = doc.data();
+          convos.push({ 
+            id: doc.id, 
+            ...data,
+            otherUserId: data.participants?.find(id => id !== user.uid) || null
+          });
         });
-        setConversations(convos);
+        
+        // If no conversations, show all users as potential conversations
+        if (convos.length === 0 && allUsers.length > 0) {
+          const potentialConvos = allUsers.slice(0, 5).map((otherUser, index) => ({
+            id: `potential-${otherUser.id}`,
+            otherUserId: otherUser.id,
+            otherUserName: otherUser.displayName || otherUser.email?.split('@')[0] || 'User',
+            otherUserPhoto: otherUser.photoURL || null,
+            lastMessage: 'Start a conversation',
+            lastMessageTime: null,
+            isOnline: Math.random() > 0.5,
+            unread: false
+          }));
+          setConversations(potentialConvos);
+        } else {
+          setConversations(convos);
+        }
         setLoading(false);
       });
 
@@ -81,8 +109,8 @@ const Messages = () => {
 
   return (
     <div className="messages-container">
-  
-      {/* Search Bar */}
+      <Header />
+      
       <div className="search-bar">
         <FontAwesomeIcon icon={faSearch} className="search-icon" />
         <input
@@ -93,7 +121,6 @@ const Messages = () => {
         />
       </div>
 
-      {/* Conversations List */}
       <div className="conversations-list">
         {loading ? (
           <div className="loading-state">
@@ -136,7 +163,7 @@ const Messages = () => {
                 <div className="conversation-preview">
                   <p>{convo.lastMessage || 'No messages yet'}</p>
                   {convo.unread && (
-                    <div className="unread-badge">{convo.unreadCount}</div>
+                    <div className="unread-badge">{convo.unreadCount || 1}</div>
                   )}
                 </div>
               </div>
