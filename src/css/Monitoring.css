@@ -6,6 +6,7 @@
   overflow-y: auto;
   height: calc(100vh - 75px);
   scrollbar-width: none;
+  margin-top: -80px;
 }
 
 .monitoring-container::-webkit-scrollbar {

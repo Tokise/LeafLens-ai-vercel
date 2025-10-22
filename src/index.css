@@ -70,8 +70,7 @@ html::-webkit-scrollbar {
 }
 
 .app-main {
-  padding-top: 10px;
-  padding-bottom: 75px;
+  padding-top: 83px;
   width: 100%;
   min-height: calc(100vh - 64px - 75px);
 }
@@ -157,7 +156,7 @@ body.camera-mode, html.camera-mode {
 .page-container {
   padding-left: 16px !important;
   padding-right: 16px !important;
-  padding-top: 70px !important;
+  padding-top: -10px !important;
   padding-bottom: 90px !important;
   margin: 0 !important;
   width: 100% !important;

@@ -1,43 +1,35 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { signIn, signUp, signInWithGoogle, auth } from '../../firebase/auth';
-import { getRedirectResult } from 'firebase/auth';
-import logo from '../../assets/images/logo.PNG';
-import '../../css/Auth.css';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { signIn, signUp, signInWithGoogle, auth } from "../../firebase/auth";
+import { getRedirectResult } from "firebase/auth";
+import logo from "../../assets/images/logo.PNG";
+import "../../css/Auth.css";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        navigate('/');
-      }
+      if (user) navigate("/");
     });
-
     return () => unsubscribe();
   }, [navigate]);
 
   useEffect(() => {
-    // Complete Google redirect sign-in if returning from provider
     let active = true;
     (async () => {
       try {
         const result = await getRedirectResult(auth);
         if (!active) return;
-        if (result && result.user) {
-          navigate('/');
-        }
+        if (result && result.user) navigate("/");
       } catch (err) {
-        // Swallow expected cases where no redirect is pending; show others
-        console.warn('No redirect result or error completing redirect:', err);
+        console.warn("No redirect result:", err);
       }
     })();
     return () => { active = false; };
@@ -45,7 +37,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
@@ -53,29 +45,29 @@ const Login = () => {
       if (isLogin) {
         result = await signIn(email, password);
       } else {
+        // Sign-up automatically adds lowercase fields for search
         result = await signUp(email, password, displayName);
       }
 
       if (result.error) {
         setError(result.error);
       } else {
-        navigate('/');
+        navigate("/");
       }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <div className="auth-container">
       <div className="auth-box">
-          <img src={logo} alt="LeafLens AI Logo" className="auth-logo" />
-        
-        
+        <img src={logo} alt="LeafLens AI Logo" className="auth-logo" />
+
         {error && <div className="auth-error">{error}</div>}
-        
+
         <form onSubmit={handleSubmit} className="auth-form">
           {!isLogin && (
             <div className="form-group">
@@ -116,37 +108,26 @@ const Login = () => {
           </div>
 
           <button type="submit" className="auth-button" disabled={loading}>
-            {loading ? 'Please wait...' : isLogin ? 'Login' : 'Sign Up'}
+            {loading ? "Please wait..." : isLogin ? "Login" : "Sign Up"}
           </button>
         </form>
 
-        <div className="auth-divider">
-          <span>or</span>
-        </div>
+        <div className="auth-divider"><span>or</span></div>
 
-        <button 
+        <button
           className="google-auth-button"
           onClick={async () => {
             setLoading(true);
-            setError('');
+            setError("");
             try {
               const result = await signInWithGoogle();
-              if (result.error) {
-                setError(result.error);
-              } else {
-                // Detect Median.co Android wrapper
-                const isAndroidWrapper = window.navigator.userAgent.includes("Median");
-                if (isAndroidWrapper) {
-                  navigate('/');
-                  window.location.reload(); // Force reload for Android wrapper
-                } else {
-                  navigate('/');
-                }
-              }
-            } catch (err) {
-              setError('An unexpected error occurred. Please try again.');
+              if (result.error) setError(result.error);
+              else navigate("/");
+            } catch {
+              setError("An unexpected error occurred. Please try again.");
+            } finally {
+              setLoading(false);
             }
-            setLoading(false);
           }}
           disabled={loading}
         >
@@ -156,11 +137,11 @@ const Login = () => {
 
         <p className="auth-switch">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button 
+          <button
             className="switch-button"
             onClick={() => setIsLogin(!isLogin)}
           >
-            {isLogin ? 'Sign Up' : 'Login'}
+            {isLogin ? "Sign Up" : "Login"}
           </button>
         </p>
       </div>

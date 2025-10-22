@@ -1,72 +1,62 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/navbar/Navbar';
-import Community from './pages/Community/Community';
-import Scan from './pages/Scan/Scan';
-import Favorites from './pages/Favorites/Favorites';
-import Chatbot from './pages/Chatbot/Chatbot';
-import Notification from './pages/Notification/Notification';
-import Settings from './pages/Settings/Settings';
-import Login from './pages/Auth/Login';
-import Chat from './pages/Chat/Chat';
-import Messages from './pages/Messages/Messages';
-import Monitoring from './pages/Monitoring/Monitoring';
-import { useState, useEffect } from 'react';
-import { auth } from './firebase/auth';
-import { getRedirectResult } from 'firebase/auth';
-import { Toaster } from 'react-hot-toast';
-import { ThemeProvider } from './context/ThemeContext';
-import { weatherService } from './utils/weatherService';
-import { pushNotificationService } from './utils/pushNotificationService';
-import { notificationService } from './utils/notificationService';
-import Search from './pages/Search/Search';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/navbar/Navbar";
+import Community from "./pages/Community/Community";
+import Scan from "./pages/Scan/Scan";
+import Favorites from "./pages/Favorites/Favorites";
+import Chatbot from "./pages/Chatbot/Chatbot";
+import Notification from "./pages/Notification/Notification";
+import Settings from "./pages/Settings/Settings";
+import Login from "./pages/Auth/Login";
+import Chat from "./pages/Chat/Chat";
+import Messages from "./pages/Messages/Messages";
+import Monitoring from "./pages/Monitoring/Monitoring";
+import { useState, useEffect } from "react";
+import { auth } from "./firebase/auth";
+import { db } from "./firebase/firebase";
+import {
+  doc,
+  updateDoc,
+  serverTimestamp,
+  onSnapshot,
+} from "firebase/firestore";
+import { getRedirectResult } from "firebase/auth";
+import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "./context/ThemeContext";
+import { weatherService } from "./utils/weatherService";
+import { pushNotificationService } from "./utils/pushNotificationService";
+import { notificationService } from "./utils/notificationService";
+import Search from "./pages/Search/Search";
 import Profile from "./pages/Profile";
-
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // 👇 Handle online/offline presence
   useEffect(() => {
-    console.log('App mounting, setting up auth listener...');
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result && result.user) {
-          console.log('OAuth redirect completed; user restored');
-          setUser(result.user);
-        }
-      })
-      .catch((err) => {
-        console.warn('No pending redirect or error completing redirect:', err);
+    const setPresence = async (user, isOnline) => {
+      if (!user) return;
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        isOnline,
+        lastSeen: serverTimestamp(),
       });
+    };
+
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      console.log('Auth state changed:', user ? 'User logged in' : 'No user');
       setUser(user);
-      notificationService.setUser(user ? user.uid : 'guest');
       if (user) {
-        weatherService.subscribeToRemoteWeather(user.uid);
-      } else {
-        weatherService.stopWeatherUpdates();
+        setPresence(user, true);
+
+        const handleOffline = () => setPresence(user, false);
+        window.addEventListener("beforeunload", handleOffline);
+        window.addEventListener("unload", handleOffline);
       }
       setLoading(false);
-      
-      if (user) {
-        console.log('Initializing services for logged in user...');
-        weatherService.init().catch(error => {
-          console.error('Failed to initialize weather service:', error);
-        });
-        
-        pushNotificationService.init().catch(error => {
-          console.error('Failed to initialize push notifications:', error);
-        });
-      } else {
-        console.log('No user, stopping weather updates');
-        weatherService.stopWeatherUpdates();
-      }
     });
 
     return () => {
       unsubscribe();
-      weatherService.stopWeatherUpdates();
     };
   }, []);
 
@@ -85,14 +75,13 @@ function App() {
         <Toaster position="top-center" />
         {user ? (
           <>
-           
             <main className="app-main">
               <Routes>
                 <Route path="/" element={<Community />} />
                 <Route path="/search" element={<Search />} />
-                 <Route path="/profile/:userId" element={<Profile />} />
+                <Route path="/profile/:userId" element={<Profile />} />
                 <Route path="/messages" element={<Messages />} />
-                <Route path="/chat/:userId" element={<Chat />} />
+                <Route path="/chat/:conversationId" element={<Chat />} />
                 <Route path="/scan" element={<Scan />} />
                 <Route path="/monitoring" element={<Monitoring />} />
                 <Route path="/favorites" element={<Favorites />} />

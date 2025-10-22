@@ -1,80 +1,181 @@
-/* Make profile scrollable */
-.profile-container {
-  height: 100vh;
-  overflow-y: auto;
-  scroll-behavior: smooth;
+/* === Profile.css === */
+@import "../css/Community.css";
+
+.profile-page {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  color: #f1f1f1;
   padding-bottom: 60px;
 }
 
-/* Modernized card */
-.profile-card {
-  background: rgba(30, 30, 30, 0.6);
-  backdrop-filter: blur(8px);
-  border-radius: 16px;
+.profile-container {
   padding: 20px;
-  margin-top: 80px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* Profile top */
-.profile-top {
+.profile-header {
   display: flex;
   align-items: center;
   gap: 20px;
-  flex-wrap: wrap;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
 }
 
-.profile-avatar img {
-  width: 110px;
-  height: 110px;
+.profile-avatar {
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  border: 2px solid #47e58b;
 }
 
-/* Responsive text */
-.profile-meta {
-  flex: 1;
-  color: #f5f5f5;
+.profile-details h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
-.profile-name {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.profile-email {
+.profile-details p {
+  color: #aaa;
+  margin-top: 4px;
   font-size: 0.9rem;
-  opacity: 0.8;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 24px;
+  margin-top: 12px;
+}
+
+.profile-stats div {
+  text-align: center;
+}
+
+.profile-stats strong {
+  display: block;
+  font-size: 1.2rem;
+  color: #47e58b;
+}
+
+.profile-stats span {
+  font-size: 0.8rem;
+  color: #aaa;
 }
 
 .profile-actions {
-  margin-top: 10px;
+  margin-top: 16px;
 }
 
-.profile-actions .btn {
-  padding: 10px 16px;
-  border-radius: 10px;
+.friend-btn {
+  background: #47e58b;
+  color: #0f1116;
+  padding: 8px 18px;
+  border-radius: 20px;
   border: none;
   cursor: pointer;
   font-weight: 600;
-  transition: 0.3s;
+  transition: 0.2s;
 }
 
-.profile-actions .btn.primary {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
+.friend-btn:hover {
+  opacity: 0.9;
+}
+
+/* === Feed posts (same as Community.css) === */
+.posts-feed {
+  margin-top: 30px;
+}
+
+.no-posts-text {
+  text-align: center;
+  color: #888;
+  font-size: 1rem;
+  margin-top: 40px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
   color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.2s;
 }
 
-.profile-actions .btn.outline {
-  border: 1px solid #aaa;
-  background: transparent;
-  color: #fff;
+.icon-btn:hover {
+  opacity: 0.8;
 }
 
-.profile-actions .btn:hover {
-  transform: scale(1.05);
+.profile-page {
+  overflow-y: auto;
+  max-height: 100vh;
+  padding-bottom: 100px;
 }
 
+.profile-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
+.profile-posts {
+  width: 90%;
+  max-width: 600px;
+  margin-top: 20px;
+}
+
+.post-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  color: #f5f5f5;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.post-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.post-caption {
+  margin: 12px 0;
+}
+
+.post-media img {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.post-actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+}
+
+.post-actions button {
+  background: none;
+  border: none;
+  color: #cfcfcf;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.2s;
+}
+
+.post-actions button:hover {
+  color: #4ade80;
+}

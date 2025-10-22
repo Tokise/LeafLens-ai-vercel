@@ -1,89 +1,67 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { getAuth } from "firebase/auth";
 import {
-  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
   doc,
   getDoc,
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  addDoc,
-  setDoc,
-  updateDoc,
   serverTimestamp,
-  where,
+  orderBy,
+  query,
 } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import toast from "react-hot-toast";
-import "../../css/Chat.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-
-const db = getFirestore();
-const auth = getAuth();
+import { faArrowLeft, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+import "../../css/Chat.css";
+import toast from "react-hot-toast";
+import { db } from "../../firebase/firebase";
 
 const Chat = () => {
   const { conversationId } = useParams();
   const navigate = useNavigate();
+  const auth = getAuth();
   const currentUser = auth.currentUser;
-
-  const [conversation, setConversation] = useState(null);
-  const [otherUser, setOtherUser] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [text, setText] = useState("");
+  const [friend, setFriend] = useState(null);
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
-
   const messagesEndRef = useRef(null);
 
-  // ✅ Fetch conversation + messages
+  // 🔽 Auto scroll to bottom
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  useEffect(scrollToBottom, [messages]);
+
+  // 🔁 Fetch and listen for friend's status (fixed unsubscribe)
   useEffect(() => {
-    if (!conversationId || !currentUser) return;
-    let unsubMessages;
+    if (!conversationId) return;
+
+    let unsubFriend; // Store unsubscribe callback
 
     const fetchChat = async () => {
       try {
-        setLoading(true);
-        const convoRef = doc(db, "conversations", conversationId);
-        const convoSnap = await getDoc(convoRef);
+        const chatRef = doc(db, "conversations", conversationId);
+        const chatSnap = await getDoc(chatRef);
+        if (chatSnap.exists()) {
+          const chatData = chatSnap.data();
+          const friendId = chatData.participants.find(
+            (id) => id !== currentUser.uid
+          );
 
-        if (!convoSnap.exists()) {
-          console.warn("Conversation not found");
-          setConversation(null);
-          setLoading(false);
-          return;
+          // Real-time listener for friend's user document
+          const friendRef = doc(db, "users", friendId);
+          unsubFriend = onSnapshot(friendRef, (snap) => {
+            if (snap.exists()) {
+              setFriend({ id: friendId, ...snap.data() });
+            }
+          });
+        } else {
+          toast.error("Chat not found");
         }
-
-        const convoData = convoSnap.data();
-        setConversation({ id: convoSnap.id, ...convoData });
-
-        // ✅ Determine other user
-        const otherId = convoData.participants.find((id) => id !== currentUser.uid);
-        if (otherId) {
-          const uRef = doc(db, "users", otherId);
-          const uSnap = await getDoc(uRef);
-          if (uSnap.exists()) {
-            setOtherUser({ id: otherId, ...uSnap.data() });
-          } else {
-            console.warn("Other user not found in users collection");
-          }
-        }
-
-        // ✅ Listen for messages in this conversation
-        const msgQuery = query(
-          collection(db, "conversations", conversationId, "messages"),
-          orderBy("createdAt", "asc")
-        );
-
-        unsubMessages = onSnapshot(msgQuery, (snap) => {
-          const loaded = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          setMessages(loaded);
-          setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-          }, 100);
-        });
-      } catch (err) {
-        console.error("Error fetching chat:", err);
+      } catch (error) {
+        console.error("Error fetching chat:", error);
         toast.error("Failed to load chat");
       } finally {
         setLoading(false);
@@ -91,112 +69,137 @@ const Chat = () => {
     };
 
     fetchChat();
-    return () => unsubMessages && unsubMessages();
+
+    return () => {
+      if (unsubFriend) unsubFriend();
+    };
   }, [conversationId, currentUser]);
 
-  // ✅ Send message
-  const sendMessage = async () => {
-    if (!text.trim()) return;
-    if (!currentUser || !conversationId) return;
+  // 🔁 Listen for messages
+  useEffect(() => {
+    if (!conversationId) return;
 
-    const convoRef = doc(db, "conversations", conversationId);
-    const msgText = text.trim();
-    setText("");
+    const q = query(
+      collection(db, "conversations", conversationId, "messages"),
+      orderBy("timestamp")
+    );
+
+    const unsubMessages = onSnapshot(q, (snapshot) =>
+      setMessages(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })))
+    );
+
+    return () => unsubMessages();
+  }, [conversationId]);
+
+  // 📨 Send message
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
 
     try {
-      // ensure conversation exists
-      const convoSnap = await getDoc(convoRef);
-      if (!convoSnap.exists()) {
-        await setDoc(convoRef, {
-          participants: conversationId.split("_"),
-          createdAt: serverTimestamp(),
-          lastMessageAt: serverTimestamp(),
-        });
-      }
-
-      // ✅ add message under the conversation subcollection
       await addDoc(collection(db, "conversations", conversationId, "messages"), {
+        text: input.trim(),
         senderId: currentUser.uid,
-        text: msgText,
-        createdAt: serverTimestamp(),
+        timestamp: serverTimestamp(),
       });
-
-      await updateDoc(convoRef, { lastMessageAt: serverTimestamp() });
-    } catch (err) {
-      console.error("Send message failed:", err);
+      setInput("");
+    } catch (error) {
+      console.error("Send message failed:", error);
       toast.error("Failed to send message");
     }
   };
 
-  const backClick = () => navigate(-1);
+  // 🧠 Format status text
+  const formatStatus = (friend) => {
+    if (!friend) return "";
+    if (friend.isOnline) return "🟢 Online";
+
+    const ts = friend.lastSeen?.toDate?.();
+    if (!ts) return "Offline";
+
+    const diff = Date.now() - ts.getTime();
+    if (diff < 60000) return "Last seen just now";
+    if (diff < 3600000)
+      return `Last seen ${Math.floor(diff / 60000)} min ago`;
+    return `Last seen at ${ts.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}`;
+  };
 
   return (
     <div className="chat-page">
       <div className="chat-wrapper">
-        {/* Header */}
+        {/* HEADER */}
         <div className="chat-header">
-          <button className="chat-back" onClick={() => navigate('/')} >
-                   <FontAwesomeIcon icon={faArrowLeft}  />
+          <button className="chat-back" onClick={() => navigate("/messages")}>
+            <FontAwesomeIcon icon={faArrowLeft} />
           </button>
-          <div className="chat-person">
-            <img
-              className="chat-avatar"
-              src={otherUser?.photoURL || "/default-avatar.png"}
-              alt="avatar"
-            />
-            <div className="chat-meta">
-              <div className="chat-name">{otherUser?.displayName || "User"}</div>
-              <div className="chat-status">
-                {otherUser ? "Online" : "Loading..."}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Chat Body */}
-        <div className="chat-body">
-          {loading ? (
-            <div className="chat-loading">Loading messages...</div>
-          ) : messages.length === 0 ? (
-            <div className="chat-empty">No messages yet. Say hi 👋</div>
-          ) : (
-            <div className="messages-list">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`message-item ${
-                    msg.senderId === currentUser.uid ? "mine" : "theirs"
-                  }`}
-                >
-                  <div className="message-bubble">{msg.text}</div>
-                  <div className="message-time">
-                    {msg.createdAt?.toDate
-                      ? new Date(msg.createdAt.toDate()).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : ""}
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
+          {friend && (
+            <div
+              className="chat-user"
+              onClick={() => navigate(`/profile/${friend.id}`)}
+            >
+              <div className="avatar-wrapper">
+                <img
+                  src={friend.photoURL || "/default-avatar.png"}
+                  alt={friend.displayName}
+                  className="chat-avatar"
+                />
+                {friend.isOnline && <div className="online-dot"></div>}
+              </div>
+
+              <div className="chat-meta">
+                <div className="chat-name">{friend.displayName}</div>
+                <div className="chat-status">{formatStatus(friend)}</div>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Message Composer */}
-        <div className="chat-composer">
+        {/* BODY */}
+        <div className="chat-body">
+          {loading ? (
+            <p className="chat-loading">Loading chat...</p>
+          ) : messages.length === 0 ? (
+            <p className="chat-empty">No messages yet. Say hi 👋</p>
+          ) : (
+            messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`message-item ${
+                  msg.senderId === currentUser.uid ? "mine" : "theirs"
+                }`}
+              >
+                <div className="message-bubble">{msg.text}</div>
+                <div className="message-time">
+                  {msg.timestamp?.toDate
+                    ? msg.timestamp.toDate().toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
+                </div>
+              </div>
+            ))
+          )}
+          <div ref={messagesEndRef}></div>
+        </div>
+
+        {/* COMPOSER */}
+        <form className="chat-composer" onSubmit={sendMessage}>
           <input
+            type="text"
             className="composer-input"
             placeholder="Type a message..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
           />
-          <button className="composer-send" onClick={sendMessage}>
-            ➤
+          <button type="submit" className="composer-send">
+            <FontAwesomeIcon icon={faPaperPlane} />
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );

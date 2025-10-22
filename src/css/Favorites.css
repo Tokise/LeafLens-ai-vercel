@@ -8,6 +8,7 @@
   height: calc(100vh - 75px); /* Account for bottom navbar */
   padding-bottom: 85px; /* Extra padding to ensure content is not hidden behind navbar */
   scrollbar-width: none;
+  margin-top: -80px;
 }
 .favorites-container::-webkit-scrollbar {
   width: 0 !important;

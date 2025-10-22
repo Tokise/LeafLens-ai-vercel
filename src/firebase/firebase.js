@@ -104,4 +104,16 @@ export const onMessageListener = () =>
     });
   });
 
+  // Get all accepted friends for a user
+export const getAcceptedFriends = async (userId) => {
+  const q = query(collection(db, "friends"), where("userId", "==", userId));
+  const snap = await getDocs(q);
+  const friendIds = snap.docs.map((d) => d.data().friendId);
+
+  const usersSnap = await getDocs(collection(db, "users"));
+  const allUsers = usersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  return allUsers.filter((u) => friendIds.includes(u.id));
+};
+
 export default app;

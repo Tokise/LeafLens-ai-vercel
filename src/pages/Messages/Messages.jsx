@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { getFirestore, collection, query, where, onSnapshot, getDocs, doc, setDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import "../../css/Messages.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComments, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faComments, faSpinner, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
+import { getAcceptedFriends } from "../../firebase/friends"; // ✅ use helper
+import Header from "../../components/header/Header";
+import Navbar from "../../components/navbar/Navbar";
+
 
 const Messages = () => {
-  const db = getFirestore();
   const auth = getAuth();
   const navigate = useNavigate();
   const currentUser = auth.currentUser;
@@ -16,75 +18,33 @@ const Messages = () => {
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Load all accepted friends
   useEffect(() => {
     if (!currentUser) return;
-    const friendsRef = collection(db, "friends");
 
-    const q = query(
-      friendsRef,
-      where("status", "==", "accepted"),
-      where("participants", "array-contains", currentUser.uid)
-    );
-
-    const unsub = onSnapshot(
-      q,
-      async (snapshot) => {
-        const friendList = [];
-        for (const docSnap of snapshot.docs) {
-          const data = docSnap.data();
-          const friendId = data.participants.find((id) => id !== currentUser.uid);
-
-          // Fetch friend info from users collection
-          const userDoc = await getDocs(query(collection(db, "users"), where("id", "==", friendId)));
-          if (!userDoc.empty) {
-            const friendData = userDoc.docs[0].data();
-            friendList.push({ id: friendId, ...friendData });
-          }
-        }
-
-        setFriends(friendList);
-        setLoading(false);
-      },
-      (err) => {
+    const loadFriends = async () => {
+      try {
+        setLoading(true);
+        const list = await getAcceptedFriends(currentUser.uid);
+        setFriends(list);
+      } catch (err) {
         console.error("Error loading friends:", err);
         toast.error("Failed to load friends");
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
-    return () => unsub();
+    loadFriends();
   }, [currentUser]);
 
-  // ✅ Open or create a chat
   const openChat = async (friendId) => {
-    try {
-      if (!currentUser || !friendId) return;
-
-      // Sorted deterministic conversation ID
-      const convoId = [currentUser.uid, friendId].sort().join("_");
-      const convoRef = doc(db, "conversations", convoId);
-
-      // Create if it doesn't exist
-      await setDoc(
-        convoRef,
-        {
-          participants: [currentUser.uid, friendId],
-          createdAt: new Date(),
-          lastMessageAt: new Date(),
-        },
-        { merge: true }
-      );
-
-      navigate(`/chat/${convoId}`);
-    } catch (err) {
-      console.error("Error opening chat:", err);
-      toast.error("Unable to start chat");
-    }
+    navigate(`/chat/${[currentUser.uid, friendId].sort().join("_")}`);
   };
 
   return (
     <div className="messages-page">
+      <Header />
+      <Navbar />
       <h2 className="messages-title">
         <FontAwesomeIcon icon={faComments} /> Messages
       </h2>

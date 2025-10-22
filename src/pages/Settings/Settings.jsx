@@ -1,79 +1,114 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { auth } from '../../firebase/auth';
-import { updateProfile } from 'firebase/auth';
-import { useTheme } from '../../context/ThemeContext';
-import Header from '../../components/header/Header';
-import { requestNotificationPermission } from '../../firebase/firebase';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faUser, 
-  faBell, 
-  faMoon, 
-  faLock,
-  faShieldAlt,
-  faQuestionCircle,
-  faInfoCircle,
-  faSignOutAlt,
-  faChevronRight
-} from '@fortawesome/free-solid-svg-icons';
-import { toast } from 'react-hot-toast';
-import '../../css/Settings.css';
-import Navbar from '../../components/navbar/Navbar';
+import { useState, useEffect } from "react";
+import { auth } from "../../firebase/auth";
+import { signOut, updateProfile, deleteUser as deleteFirebaseUser } from "firebase/auth";
+import {
+  doc,
+  updateDoc,
+  getDocs,
+  collection,
+  query,
+  where,
+  deleteDoc,
+} from "firebase/firestore";
+import { db } from "../../firebase/firebase";
+import "../../css/Settings.css";
+import { toast } from "react-hot-toast";
+import Header from "../../components/header/Header";
+import Navbar from "../../components/navbar/Navbar";
 
 const Settings = () => {
-  const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
-  const [loading, setLoading] = useState(false);
-  const [displayName, setDisplayName] = useState(auth.currentUser?.displayName || '');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(
-    () => localStorage.getItem('notificationsEnabled') === 'true'
-  );
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const user = auth.currentUser;
+  const [stats, setStats] = useState({ friends: 0, posts: 0, followers: 0 });
+  const [showModal, setShowModal] = useState(false);
+  const [displayName, setDisplayName] = useState(user?.displayName || "");
+  const [photoURL, setPhotoURL] = useState(user?.photoURL || "");
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    localStorage.getItem("notifications") === "true"
+  );
+  const [loading, setLoading] = useState(false);
 
-  const handleProfileUpdate = async () => {
+  // Fetch stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user) return;
+      try {
+        const friendsQ = query(collection(db, "friends"), where("participants", "array-contains", user.uid));
+        const postsQ = query(collection(db, "posts"), where("userId", "==", user.uid));
+        const friendsSnap = await getDocs(friendsQ);
+        const postsSnap = await getDocs(postsQ);
+        setStats({
+          friends: friendsSnap.size,
+          posts: postsSnap.size,
+          followers: friendsSnap.size,
+        });
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      }
+    };
+    fetchStats();
+  }, [user]);
+
+  // Save profile changes
+  const handleSave = async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      await updateProfile(auth.currentUser, {
-        displayName: displayName
+      await updateProfile(user, { displayName, photoURL });
+      await updateDoc(doc(db, "users", user.uid), {
+        displayName,
+        photoURL,
+        displayName_lowercase: displayName.toLowerCase(),
+        email_lowercase: user.email.toLowerCase(),
       });
-      toast.success('Profile updated!');
-      setIsEditingProfile(false);
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      toast.success("Profile updated!");
+      setShowModal(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update profile");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
+  // Handle preferences
+  const handleThemeToggle = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+    toast.success(`Switched to ${newTheme} mode`);
+  };
+
+  const handleNotificationToggle = () => {
+    const enabled = !notificationsEnabled;
+    setNotificationsEnabled(enabled);
+    localStorage.setItem("notifications", enabled.toString());
+    toast.success(`Notifications ${enabled ? "enabled" : "disabled"}`);
+  };
+
+  // Logout
   const handleLogout = async () => {
-    try {
-      await auth.signOut();
-      navigate('/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
+    await signOut(auth);
+    toast.success("Logged out");
+    window.location.href = "/login";
   };
 
-  const handleNotificationToggle = async (enabled) => {
+  // Delete account
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    if (!window.confirm("Are you sure you want to delete your account?")) return;
+    setLoading(true);
     try {
-      if (enabled) {
-        const token = await requestNotificationPermission();
-        const ok = Boolean(token);
-        setNotificationsEnabled(ok);
-        if (ok) {
-          localStorage.setItem('notificationsEnabled', 'true');
-        } else {
-          localStorage.removeItem('notificationsEnabled');
-        }
-      } else {
-        setNotificationsEnabled(false);
-        localStorage.removeItem('notificationsEnabled');
-      }
-    } catch (error) {
-      console.error('Error handling notification permission:', error);
-      setNotificationsEnabled(false);
+      await deleteDoc(doc(db, "users", user.uid));
+      await deleteFirebaseUser(user);
+      toast.success("Account deleted");
+      window.location.href = "/signup";
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete account");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,135 +116,79 @@ const Settings = () => {
     <div className="settings-page">
       <Header />
       <Navbar />
+
       <div className="settings-content">
+        {/* === PROFILE === */}
         <div className="profile-section">
           <div className="profile-avatar-large">
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt="Profile" />
-            ) : (
-              <div className="avatar-placeholder-large">
-                {user?.email?.charAt(0).toUpperCase() || 'U'}
-              </div>
-            )}
+            <img src={user?.photoURL || "/default-avatar.png"} alt="avatar" />
           </div>
-          <h2>{user?.displayName || user?.email?.split('@')[0] || 'Plant Lover'}</h2>
-          <p className="profile-email">{user?.email}</p>
-          
+          <h2>{user?.displayName || "Anonymous User"}</h2>
+          <p>{user?.email}</p>
+
           <div className="profile-stats">
-            <div className="stat-item">
-              <span className="stat-value">3</span>
-              <span className="stat-label">Plants</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-value">4</span>
-              <span className="stat-label">Posts</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-value">127</span>
-              <span className="stat-label">Followers</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <h3 className="section-title">Account Settings</h3>
-          
-          <div className="settings-item" onClick={() => setIsEditingProfile(true)}>
-            <div className="item-left">
-              <FontAwesomeIcon icon={faUser} className="item-icon" />
-              <span>Edit Profile</span>
-            </div>
-            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
+            <div className="stat-item"><span>{stats.friends}</span><span>Friends</span></div>
+            <div className="stat-item"><span>{stats.posts}</span><span>Posts</span></div>
+            <div className="stat-item"><span>{stats.followers}</span><span>Followers</span></div>
           </div>
 
-          <div className="settings-item">
-            <div className="item-left">
-              <FontAwesomeIcon icon={faLock} className="item-icon" />
-              <span>Change Password</span>
-            </div>
-            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <h3 className="section-title">Preferences</h3>
-          
-          <div className="settings-item toggle-item">
-            <div className="item-left">
-              <FontAwesomeIcon icon={faBell} className="item-icon" />
-              <span>Push Notifications</span>
-            </div>
-            <label className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={notificationsEnabled}
-                onChange={(e) => handleNotificationToggle(e.target.checked)}
-              />
-              <span className="toggle-slider"></span>
-            </label>
-          </div>
-
-          <div className="settings-item toggle-item">
-            <div className="item-left">
-              <FontAwesomeIcon icon={faMoon} className="item-icon" />
-              <span>Dark Mode</span>
-            </div>
-            <label className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={theme === 'dark'}
-                onChange={(e) => setTheme(e.target.checked ? 'dark' : 'light')}
-              />
-              <span className="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <h3 className="section-title">Privacy & Security</h3>
-          
-          <div className="settings-item">
-            <div className="item-left">
-              <FontAwesomeIcon icon={faShieldAlt} className="item-icon" />
-              <span>Privacy Settings</span>
-            </div>
-            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
-          </div>
-
-          <div className="settings-item">
-            <div className="item-left">
-              <FontAwesomeIcon icon={faUser} className="item-icon" />
-              <span>Blocked Users</span>
-            </div>
-            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <h3 className="section-title">Help & Support</h3>
-          
-          <div className="settings-item">
-            <div className="item-left">
-              <FontAwesomeIcon icon={faQuestionCircle} className="item-icon" />
-              <span>Help Center</span>
-            </div>
-            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
-          </div>
-
-          <div className="settings-item">
-            <div className="item-left">
-              <FontAwesomeIcon icon={faInfoCircle} className="item-icon" />
-              <span>About LeafLens</span>
-            </div>
-            <FontAwesomeIcon icon={faChevronRight} className="chevron" />
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <button className="logout-btn" onClick={handleLogout}>
-            <span>Log Out</span>
+          <button className="edit-profile-btn" onClick={() => setShowModal(true)}>
+            Edit Profile
           </button>
         </div>
+
+        {/* === PREFERENCES === */}
+        <div className="preferences-section">
+          <h3>Preferences</h3>
+          <div className="pref-item">
+            <span>Dark Mode</span>
+            <button onClick={handleThemeToggle}>
+              {theme === "dark" ? "🌙 On" : "☀️ Off"}
+            </button>
+          </div>
+        </div>
+
+        {/* === ACCOUNT === */}
+        <div className="account-section">
+          <h3>Account</h3>
+          <button className="logout-btn" onClick={handleLogout}>
+            Log Out
+          </button>
+          <button
+            className="delete-account-btn"
+            onClick={handleDeleteAccount}
+            disabled={loading}
+          >
+            Delete Account
+          </button>
+        </div>
+
+        {/* === MODAL === */}
+        {showModal && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <h3>Edit Profile</h3>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Display Name"
+              />
+              <input
+                type="text"
+                value={photoURL}
+                onChange={(e) => setPhotoURL(e.target.value)}
+                placeholder="Photo URL"
+              />
+              <div className="modal-actions">
+                <button onClick={handleSave} disabled={loading}>
+                  {loading ? "Saving..." : "Save"}
+                </button>
+                <button onClick={() => setShowModal(false)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

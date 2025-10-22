@@ -5,6 +5,8 @@
   overflow-y: auto;
   height: calc(100vh - 75px);
   padding-bottom: 85px;
+  margin-top: -80px;
+  background: var(--background-color);
 }
 
 .notifications-header {
@@ -197,4 +199,86 @@
 
 .reject-btn:hover {
   background: #c0392b;
+}
+
+
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  background-color: #1c1c1c;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  border-radius: 10px;
+  transition: background 0.2s ease-in-out;
+}
+
+.notification-item:hover {
+  background-color: #252525;
+}
+
+.notification-content h3,
+.notification-content p,
+.notification-time {
+  color: #fff;
+}
+
+.friend-requests-section {
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.friend-requests-title {
+  font-size: 1.2rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.friend-request-item {
+  background: var(--background-color);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.friend-request-info strong {
+  color: var(--text-color);
+  font-size: 1rem;
+}
+
+.friend-request-info p {
+  color: var(--text-color);
+  margin-top: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.friend-request-actions button {
+  border: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.friend-request-actions .accept-btn {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.friend-request-actions .accept-btn:hover {
+  background-color: #23923d;
+}
+
+.friend-request-actions .reject-btn {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.friend-request-actions .reject-btn:hover {
+  background-color: #b02a37;
 }

@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
-import { notificationService } from '../../utils/notificationService';
-import { NotificationCategory } from '../../utils/types';
-import Header from '../../components/header/Header';
-import '../../css/Notification.css';
-
-// === 🔥 NEW FIREBASE IMPORTS FOR FRIEND REQUEST NOTIFICATIONS ===
+import { useState, useEffect } from "react";
+import { notificationService } from "../../utils/notificationService";
+import { NotificationCategory } from "../../utils/types";
+import Header from "../../components/header/Header";
+import Navbar from "../../components/navbar/Navbar";
+import "../../css/Notification.css";
 import {
   collection,
   query,
@@ -18,51 +17,43 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import React from "react";
-import Navbar from '../../components/navbar/Navbar';
+
+// === Initialize Firebase instances ===
+const db = getFirestore();
+const auth = getAuth();
 
 const Notification = () => {
   const [notifications, setNotifications] = useState([]);
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeCategory, setActiveCategory] = useState("all");
 
+  // Load & subscribe to notificationService updates
   useEffect(() => {
-    // Subscribe to notification updates
-    const unsubscribe = notificationService.subscribe(updatedNotifications => {
-      setNotifications(updatedNotifications);
+    const unsubscribe = notificationService.subscribe((updated) => {
+      setNotifications(updated);
     });
 
-    // Initial load
     setNotifications(notificationService.getNotifications());
-
-    // Cleanup subscription
     return () => unsubscribe();
   }, []);
 
   const getFilteredNotifications = () => {
-    if (activeCategory === 'all') {
-      return notifications;
-    }
-    return notifications.filter(notification => notification.category === activeCategory);
+    if (activeCategory === "all") return notifications;
+    return notifications.filter((n) => n.category === activeCategory);
   };
 
-  const markAsRead = (notificationId) => {
-    notificationService.markAsRead(notificationId);
-  };
-
-  const markAllAsRead = () => {
-    notificationService.markAllAsRead();
-  };
+  const markAsRead = (id) => notificationService.markAsRead(id);
+  const markAllAsRead = () => notificationService.markAllAsRead();
 
   const getCategoryIcon = (category) => {
     switch (category) {
       case NotificationCategory.PLANT:
-        return '🌿';
+        return "🌿";
       case NotificationCategory.WEATHER:
-        return '🌤️';
+        return "🌤️";
       case NotificationCategory.SYSTEM:
-        return '⚙️';
+        return "⚙️";
       default:
-        return '📬';
+        return "📬";
     }
   };
 
@@ -70,6 +61,7 @@ const Notification = () => {
     <div className="notifications-container">
       <Header />
       <Navbar />
+
       <div className="notifications-header">
         <h1>Notifications</h1>
         {notifications.length > 0 && (
@@ -81,15 +73,15 @@ const Notification = () => {
 
       <div className="notification-filters">
         <button
-          className={`filter-btn ${activeCategory === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveCategory('all')}
+          className={`filter-btn ${activeCategory === "all" ? "active" : ""}`}
+          onClick={() => setActiveCategory("all")}
         >
           All
         </button>
-        {Object.values(NotificationCategory).map(category => (
+        {Object.values(NotificationCategory).map((category) => (
           <button
             key={category}
-            className={`filter-btn ${activeCategory === category ? 'active' : ''}`}
+            className={`filter-btn ${activeCategory === category ? "active" : ""}`}
             onClick={() => setActiveCategory(category)}
           >
             {getCategoryIcon(category)} {category}
@@ -103,38 +95,33 @@ const Notification = () => {
             No notifications at the moment. We'll notify you about plant care reminders and updates!
           </p>
         ) : (
-          getFilteredNotifications().map(notification => (
+          getFilteredNotifications().map((n) => (
             <div
-              key={notification.id}
-              className={`notification-item ${notification.read ? 'read' : 'unread'}`}
-              onClick={() => markAsRead(notification.id)}
+              key={n.id}
+              className={`notification-item ${n.read ? "read" : "unread"}`}
+              onClick={() => markAsRead(n.id)}
             >
-              <div className="notification-icon">
-                {notification.icon || getCategoryIcon(notification.category)}
-              </div>
+              <div className="notification-icon">{n.icon || getCategoryIcon(n.category)}</div>
               <div className="notification-content">
-                <h3>{notification.title}</h3>
-                <p>{notification.message}</p>
+                <h3>{n.title}</h3>
+                <p>{n.message}</p>
                 <span className="notification-time">
-                  {new Date(notification.timestamp).toLocaleString()}
+                  {new Date(n.timestamp).toLocaleString()}
                 </span>
               </div>
-              {!notification.read && <div className="unread-dot" />}
+              {!n.read && <div className="unread-dot" />}
             </div>
           ))
         )}
       </div>
 
-      {/* 🔥 Friend Request Notifications Section */}
+      {/* 🔥 Friend Requests Section */}
       <FriendRequestNotifications />
     </div>
   );
 };
 
-// === 🔥 ENHANCEMENT: Friend Request Notifications Component ===
-const db = getFirestore();
-const auth = getAuth();
-
+// === 🧩 Friend Request Notification Component ===
 const FriendRequestNotifications = () => {
   const [requests, setRequests] = useState([]);
   const currentUser = auth.currentUser;
@@ -148,63 +135,75 @@ const FriendRequestNotifications = () => {
       where("type", "in", ["friend_request", "friend_accept"])
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const list = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
+    const unsub = onSnapshot(q, (snap) => {
+      const list = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
       }));
       setRequests(list.sort((a, b) => b.timestamp?.seconds - a.timestamp?.seconds));
     });
 
-    return () => unsubscribe();
+    return () => unsub();
   }, [currentUser]);
 
+  // ✅ Accept Request
   const acceptFriendRequest = async (notif) => {
     try {
-      // 1️⃣ Add both users as friends
-      await addDoc(collection(db, "friends"), {
+      const friendPair = [currentUser.uid, notif.fromUserId].sort();
+      const friendDocId = friendPair.join("_");
+
+      // 1️⃣ Create unified friend doc
+      await setDoc(doc(db, "friends", friendDocId), {
+        participants: friendPair,
         userId: currentUser.uid,
         friendId: notif.fromUserId,
         createdAt: serverTimestamp(),
       });
-      await addDoc(collection(db, "friends"), {
-        userId: notif.fromUserId,
-        friendId: currentUser.uid,
-        createdAt: serverTimestamp(),
-      });
 
-      // 2️⃣ Send a notification back
+      // 2️⃣ Notify requester
       await addDoc(collection(db, "notifications"), {
         userId: notif.fromUserId,
+        fromUserId: currentUser.uid,
         type: "friend_accept",
         title: `${currentUser.displayName || "A user"} accepted your friend request!`,
-        message: "You can now chat together.",
+        message: "You are now friends!",
         timestamp: serverTimestamp(),
         read: false,
       });
 
-      // 3️⃣ Create a chat between them
-      const chatId = [currentUser.uid, notif.fromUserId].sort().join("_");
+      // 3️⃣ Create chat room
+      const chatId = friendPair.join("_");
       await setDoc(doc(db, "conversations", chatId), {
-        participants: [currentUser.uid, notif.fromUserId],
+        participants: friendPair,
         createdAt: serverTimestamp(),
         lastMessageAt: serverTimestamp(),
       });
 
-      // 4️⃣ Mark notification handled
-      await updateDoc(doc(db, "notifications", notif.id), { handled: true });
-      alert("Friend request accepted!");
-    } catch (error) {
-      console.error("Error accepting friend request:", error);
+      // 4️⃣ Mark handled
+      await updateDoc(doc(db, "notifications", notif.id), {
+        handled: true,
+        read: true,
+      });
+
+      alert("✅ Friend request accepted!");
+      setRequests((prev) => prev.map((r) => (r.id === notif.id ? { ...r, handled: true } : r)));
+    } catch (err) {
+      console.error("Error accepting friend request:", err);
+      alert("Failed to accept friend request.");
     }
   };
 
+  // ❌ Reject Request
   const rejectFriendRequest = async (notif) => {
     try {
-      await updateDoc(doc(db, "notifications", notif.id), { handled: true });
+      await updateDoc(doc(db, "notifications", notif.id), {
+        handled: true,
+        read: true,
+      });
       alert("Friend request rejected.");
-    } catch (error) {
-      console.error("Error rejecting friend request:", error);
+      setRequests((prev) => prev.map((r) => (r.id === notif.id ? { ...r, handled: true } : r)));
+    } catch (err) {
+      console.error("Error rejecting friend request:", err);
     }
   };
 
@@ -223,6 +222,7 @@ const FriendRequestNotifications = () => {
             <div className="friend-request-actions">
               <button
                 className="accept-btn"
+                disabled={notif.handled}
                 onClick={(e) => {
                   e.stopPropagation();
                   acceptFriendRequest(notif);
@@ -232,6 +232,7 @@ const FriendRequestNotifications = () => {
               </button>
               <button
                 className="reject-btn"
+                disabled={notif.handled}
                 onClick={(e) => {
                   e.stopPropagation();
                   rejectFriendRequest(notif);
